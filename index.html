@@ -1018,6 +1018,41 @@
         #desktopModeBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 10005; background: #ffb800; color: #111111; padding: 4vw; font-size: 4.6vw; line-height: 1.55; font-weight: bold; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
         #desktopModeBanner button { margin-top: 2.5vw; font-size: 4.2vw; font-weight: bold; padding: 1.8vw 5vw; border: none; border-radius: 999px; background: #111111; color: #ffffff; cursor: pointer; }
     </style>
+    <style id="wrap-fix-css">
+        /* ===== 改行の最適化（どの端末でも文字を潰さない） ===== */
+        body { line-break: strict; }
+        /* ラベル・ボタン類は単語の途中で割らない */
+        .header-title, .date-badge, .sound-test-btn,
+        .ft-left, .ft-btn,
+        .cat-btn, .timer-btn, .nav-item, #recCollapseBtn,
+        .record-skip-btn, .close-modal, .theme-opt .tname,
+        #todayTotalSetsBadge, .cal-date, .picker-display,
+        #recommendBody button {
+            white-space: nowrap;
+        }
+        .ft-left, .ft-controls, .header-title, .record-skip-btn, .nav-item {
+            flex-shrink: 0;
+        }
+        /* ヘッダー：狭い画面では右側グループを丸ごと2段目に落とす */
+        header { flex-wrap: wrap; row-gap: 8px; }
+        /* フローティングタイマー：狭い画面では操作ボタンを丸ごと2段目に落とす */
+        .floating-timer-bar { flex-wrap: wrap; row-gap: 6px; }
+        /* 種目ピッカーのラベルは1行に収めて省略表示 */
+        .picker-display { min-width: 0; }
+        #exercisePickerLabel { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* 記録ボタン：本文は自然な位置で改行、即記録ボタンは潰さない */
+        .record-exec-btn { min-width: 0; }
+        /* セット行：情報側は縮小可、操作ボタン側は固定 */
+        .set-item-info { min-width: 0; }
+        .set-item-actions { flex-shrink: 0; }
+        /* 狭い端末ではヘッダーを少しコンパクトに */
+        @media (max-width: 380px) {
+            .header-title { font-size: 1rem; }
+            .sound-test-btn { font-size: 0.72rem; }
+            .date-badge { font-size: 0.75rem; }
+            .ft-left { font-size: 0.95rem; }
+        }
+    </style>
 </head>
 <body>
 
