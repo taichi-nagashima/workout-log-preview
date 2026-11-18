@@ -17,11 +17,11 @@
             var t = 'kinetic';
             try {
                 var saved = localStorage.getItem('workout_theme_v1');
-                if (['kinetic', 'tactile', 'editorial'].indexOf(saved) >= 0) t = saved;
+                if (['kinetic', 'tactile', 'editorial', 'senior'].indexOf(saved) >= 0) t = saved;
             } catch (e) {}
             document.documentElement.setAttribute('data-theme', t);
             var metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) metaTheme.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1' }[t] || '#000000');
+            if (metaTheme) metaTheme.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
         })();
     </script>
     <script>
@@ -1008,6 +1008,63 @@
         html[data-theme="editorial"] .toast { background: #181816; color: #f7f6f2; box-shadow: none; }
         html[data-theme="editorial"] .nav-bar { background: var(--card-bg); border-top: 1px solid var(--border); }
         html[data-theme="editorial"] .login-card { border: 1px solid var(--border); border-radius: 16px; }
+        /* ---------- シニア（大文字・高コントラスト） ---------- */
+        html[data-theme="senior"] {
+            --bg-color: #fffef7; --card-bg: #ffffff; --card-hover: #f3f0e2;
+            --text-main: #141414; --text-sub: #45453e;
+            --accent: #1d4ed8; --accent-hover: #1e40af; --border: #c6c0aa;
+            --danger: #b91c1c; --success: #15803d; --gold: #b45309;
+            font-size: 20px;
+        }
+        html[data-theme="senior"] body { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
+        html[data-theme="senior"] header { background: var(--card-bg); border-bottom: 2px solid var(--border); }
+        html[data-theme="senior"] .sound-test-btn { background: #ffffff; border: 1.5px solid var(--border); color: var(--text-main); border-radius: 999px; font-weight: 700; }
+        html[data-theme="senior"] .date-badge { background: #ffffff; border: 1.5px solid var(--border); color: var(--text-main); border-radius: 999px; font-weight: 700; }
+        html[data-theme="senior"] .card { border: 1.5px solid var(--border); border-radius: 16px; box-shadow: none; }
+        html[data-theme="senior"] .stat-card { border: 1.5px solid var(--border); border-radius: 16px; box-shadow: none; }
+        html[data-theme="senior"] .stat-value { font-weight: 800; }
+        html[data-theme="senior"] .section-label { color: var(--text-main); font-weight: 700; }
+        html[data-theme="senior"] .cat-btn { background: #ffffff; border: 1.5px solid var(--border); color: var(--text-main); border-radius: 999px; font-weight: 700; }
+        html[data-theme="senior"] .cat-btn.active { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+        html[data-theme="senior"] .select-box { background-color: var(--card-bg); border: 1.5px solid var(--border); border-radius: 12px; font-weight: 700; }
+        html[data-theme="senior"] .picker-display { border: 1.5px solid var(--border); font-weight: 700; }
+        html[data-theme="senior"] .prev-info-bar { background: #fdf6e3; border: 1.5px solid var(--gold); border-radius: 12px; }
+        html[data-theme="senior"] .prev-info-bar span { color: #92400e; }
+        html[data-theme="senior"] .input-display { font-weight: 800; }
+        html[data-theme="senior"] .input-display.swiping { background-color: rgba(29, 78, 216, 0.07); }
+        html[data-theme="senior"] .adjust-btn { background: #ffffff; border: 2px solid #141414; color: #141414; border-radius: 14px; font-weight: 800; }
+        html[data-theme="senior"] .adjust-btn:active { background: #141414; color: #ffffff; }
+        html[data-theme="senior"] .timer-btn { background: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; font-weight: 700; color: var(--text-main); }
+        html[data-theme="senior"] .timer-btn.active { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+        html[data-theme="senior"] .record-exec-btn { background: var(--accent); color: #ffffff; border-radius: 14px; font-weight: 800; box-shadow: none; }
+        html[data-theme="senior"] .record-exec-btn:active { background: var(--accent-hover); }
+        html[data-theme="senior"] .record-skip-btn { background: #ffffff; border: 2px solid #141414; border-radius: 14px; color: var(--text-main); font-weight: 700; }
+        html[data-theme="senior"] .set-item-card { background: #ffffff; border: 1.5px solid var(--border); border-radius: 14px; }
+        html[data-theme="senior"] .action-icon-btn { background: #ffffff; border: 1.5px solid var(--border); color: var(--text-main); border-radius: 999px; }
+        html[data-theme="senior"] .action-icon-btn.accent { color: var(--accent); border-color: var(--accent); }
+        html[data-theme="senior"] .action-icon-btn.danger { color: var(--danger); border-color: rgba(185, 28, 28, 0.45); }
+        html[data-theme="senior"] .summary-banner-btn { background: #141414; color: #ffffff; box-shadow: none; border-radius: 14px; }
+        html[data-theme="senior"] .floating-timer-bar { background: #141414; border: none; border-radius: 18px; top: calc(84px + env(safe-area-inset-top)); }
+        html[data-theme="senior"] .floating-timer-bar.alarm { background: #141414; border: 3px solid var(--gold); }
+        html[data-theme="senior"] .ft-left { color: #ffffff; }
+        html[data-theme="senior"] .ft-btn { background: #ffffff; border: none; color: #141414; border-radius: 999px; }
+        html[data-theme="senior"] .ft-btn.stop { color: var(--danger); border: none; }
+        html[data-theme="senior"] #floatingTimeLeft { color: #ffffff !important; font-weight: 800; }
+        html[data-theme="senior"] .cal-date { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; }
+        html[data-theme="senior"] .cal-date.has-record { background: rgba(29, 78, 216, 0.08); border-color: var(--accent); }
+        html[data-theme="senior"] .cal-date.today-mark { border-color: var(--gold); border-width: 2px; }
+        html[data-theme="senior"] .cal-date.selected { background: var(--accent); color: #ffffff; }
+        html[data-theme="senior"] .search-input { background-color: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; }
+        html[data-theme="senior"] .add-ex-btn { background: var(--accent); color: #ffffff; border-radius: 12px; }
+        html[data-theme="senior"] .exercise-row { border: 1.5px solid var(--border); border-radius: 16px; }
+        html[data-theme="senior"] .modal-content { border-top: 1.5px solid var(--border); border-radius: 16px 16px 0 0; }
+        html[data-theme="senior"] .form-input { background: #ffffff; border: 1.5px solid var(--border); border-radius: 10px; }
+        html[data-theme="senior"] .close-modal { background: var(--border); color: var(--text-main); }
+        html[data-theme="senior"] .pr-badge { background: #fdf6e3; color: #92400e; border: 1.5px solid var(--gold); border-radius: 6px; }
+        html[data-theme="senior"] .toast { background: #141414; color: #ffffff; box-shadow: none; }
+        html[data-theme="senior"] .nav-bar { background: #ffffff; border-top: 2px solid var(--border); }
+        html[data-theme="senior"] .nav-item.active { color: var(--accent); }
+        html[data-theme="senior"] .login-card { border: 1.5px solid var(--border); border-radius: 16px; }
     </style>
     <style id="picker-css">
         #exerciseSelect { display: none; }
@@ -1337,6 +1394,11 @@
                     <span><span class="tname">Raw Editorial Log</span><span class="tdesc">紙のトレーニング日誌風。紙色×インク黒×朱赤のライトテーマ</span></span>
                     <span class="check">✓</span>
                 </button>
+                <button class="theme-opt" data-theme-opt="senior" onclick="setTheme('senior')">
+                    <span class="dots"><span class="dot" style="background:#fffef7; border:1px solid #c6c0aa;"></span><span class="dot" style="background:#1d4ed8;"></span><span class="dot" style="background:#141414;"></span></span>
+                    <span><span class="tname">シニア（大文字）</span><span class="tdesc">文字が大きく、はっきり見える高コントラスト表示。ご年配の方におすすめ</span></span>
+                    <span class="check">✓</span>
+                </button>
             </div>
             <span class="section-label">アカウント</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
@@ -1515,13 +1577,15 @@
         const THEME_CAT_COLORS = {
             kinetic:   { '胸': '#ff3b30', '背中': '#00f5d4', '肩': '#bf5af2', '腕': '#ff9f0a', '脚': '#32ade6', 'お尻': '#ff6482', '腹筋': '#ffd60a', '有酸素': '#30d158' },
             tactile:   { '胸': '#ff5252', '背中': '#4fc3f7', '肩': '#ff9800', '腕': '#4db6ac', '脚': '#ba68c8', 'お尻': '#f06292', '腹筋': '#e5b84b', '有酸素': '#81c784' },
-            editorial: { '胸': '#d9381e', '背中': '#1f6f6b', '肩': '#b26a00', '腕': '#5b7c99', '脚': '#7a4f8c', 'お尻': '#b83a5e', '腹筋': '#9a7b0a', '有酸素': '#3d7a44' }
+            editorial: { '胸': '#d9381e', '背中': '#1f6f6b', '肩': '#b26a00', '腕': '#5b7c99', '脚': '#7a4f8c', 'お尻': '#b83a5e', '腹筋': '#9a7b0a', '有酸素': '#3d7a44' },
+            senior:    { '胸': '#dc2626', '背中': '#1d4ed8', '肩': '#d97706', '腕': '#059669', '脚': '#7c3aed', 'お尻': '#db2777', '腹筋': '#0e7490', '有酸素': '#4d7c0f' }
         };
-        const THEME_ACCENT_FALLBACK = { kinetic: '#d2ff28', tactile: '#ff5722', editorial: '#d9381e' };
+        const THEME_ACCENT_FALLBACK = { kinetic: '#d2ff28', tactile: '#ff5722', editorial: '#d9381e', senior: '#1d4ed8' };
         const THEME_CHART = {
             kinetic:   { line: '#d2ff28', pointStroke: '#000000', grid: '#26262b', main: '#ffffff', sub: '#8e8e93' },
             tactile:   { line: '#ff5722', pointStroke: '#0a0a0b', grid: '#26262a', main: '#f4f4f0', sub: '#78787e' },
-            editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' }
+            editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' },
+            senior:    { line: '#1d4ed8', pointStroke: '#ffffff', grid: '#ddd8c2', main: '#141414', sub: '#45453e' }
         };
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'kinetic'; }
         function getCatColor(cat) {
@@ -1540,7 +1604,7 @@
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             const metaTheme2 = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme2) metaTheme2.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1' }[t] || '#000000');
+            if (metaTheme2) metaTheme2.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
             try { localStorage.setItem('workout_theme_v1', t); } catch (e) {}
             refreshThemeOptions();
             if (window.__drawAppIcon) window.__drawAppIcon();
