@@ -1014,9 +1014,18 @@
         .picker-display { display: block; width: 100%; text-align: left; cursor: pointer; }
         #exercisePickerList { -webkit-overflow-scrolling: touch; }
         #exercisePickerList .exercise-row { width: 100%; text-align: left; color: inherit; }
+        #desktopModeBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 10005; background: #ffb800; color: #111111; padding: 4vw; font-size: 4.6vw; line-height: 1.55; font-weight: bold; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+        #desktopModeBanner button { margin-top: 2.5vw; font-size: 4.2vw; font-weight: bold; padding: 1.8vw 5vw; border: none; border-radius: 999px; background: #111111; color: #ffffff; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <!-- PC版サイト表示の警告バナー（JSで表示制御） -->
+    <div id="desktopModeBanner" style="display:none;">
+        <div>⚠️ 画面が「PC版サイト」の表示になっています。このままだと文字が小さくて使えません。</div>
+        <div style="font-weight:normal; margin-top:1.5vw;">ブラウザのメニュー（Chromeは右上の「⋮」、Galaxy標準ブラウザは右下の「≡」）を開いて、「PC版サイト」または「デスクトップサイト」をオフにしてください。</div>
+        <button type="button" onclick="window.__dmBannerClosed = true; document.getElementById('desktopModeBanner').style.display = 'none';">閉じる</button>
+    </div>
 
     <!-- ログイン画面（Supabase Auth） -->
     <div id="loginOverlay">
@@ -3443,6 +3452,19 @@
                 showToast("⚠️ JSONの形式が正しくありません");
             }
         }
+    </script>
+    <script>
+        // PC版サイト（デスクトップ表示）検知: スマホ幅の画面なのにレイアウト幅が異常に広い場合に警告
+        function checkDesktopMode() {
+            var banner = document.getElementById('desktopModeBanner');
+            if (!banner || window.__dmBannerClosed) return;
+            var sw = window.screen ? window.screen.width : 0;
+            var suspicious = sw > 0 && sw < 600 && window.innerWidth > sw * 1.3;
+            banner.style.display = suspicious ? 'block' : 'none';
+        }
+        window.addEventListener('resize', checkDesktopMode);
+        window.addEventListener('orientationchange', function() { setTimeout(checkDesktopMode, 300); });
+        checkDesktopMode();
     </script>
 </body>
 </html>
