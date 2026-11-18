@@ -7,6 +7,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="筋トレ記録">
     <title>筋トレ記録</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script>
         // テーマ初期化（CSS適用前に保存済みテーマを反映する）
         (function() {
@@ -16,6 +20,8 @@
                 if (['kinetic', 'tactile', 'editorial'].indexOf(saved) >= 0) t = saved;
             } catch (e) {}
             document.documentElement.setAttribute('data-theme', t);
+            var metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) metaTheme.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1' }[t] || '#000000');
         })();
     </script>
     <script>
@@ -87,6 +93,8 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
+        }
+        button, select, input, textarea, a, label {
             touch-action: manipulation;
         }
         html, body {
@@ -95,6 +103,11 @@
             max-width: 600px;
             margin: 0 auto;
             overscroll-behavior-y: none;
+        }
+        html {
+            overflow-x: clip;
+        }
+        body {
             overflow-x: hidden;
         }
         body {
@@ -996,6 +1009,12 @@
         html[data-theme="editorial"] .nav-bar { background: var(--card-bg); border-top: 1px solid var(--border); }
         html[data-theme="editorial"] .login-card { border: 1px solid var(--border); border-radius: 16px; }
     </style>
+    <style id="picker-css">
+        #exerciseSelect { display: none; }
+        .picker-display { display: block; width: 100%; text-align: left; cursor: pointer; }
+        #exercisePickerList { -webkit-overflow-scrolling: touch; }
+        #exercisePickerList .exercise-row { width: 100%; text-align: left; color: inherit; }
+    </style>
 </head>
 <body>
 
@@ -1072,6 +1091,7 @@
                 <select class="select-box" id="exerciseSelect" onchange="onExerciseChange()">
                     <!-- 動的生成 -->
                 </select>
+                <button type="button" class="select-box picker-display" id="exercisePickerBtn" onclick="openExercisePicker()"><span id="exercisePickerLabel">種目を選択</span></button>
 
                 <!-- 前回記録と自己ベストの自動表示 -->
                 <div class="prev-info-bar" id="prevInfoBar">
@@ -1272,6 +1292,18 @@
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
         </div>
     </div>
+    <!-- 種目選択モーダル（カスタムピッカー） -->
+    <div class="modal" id="exercisePickerModal" onclick="if(event.target === this) closeExercisePicker()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>種目を選択</h3>
+                <button class="close-modal" onclick="closeExercisePicker()">✕</button>
+            </div>
+            <input class="form-input" id="exercisePickerSearch" type="text" placeholder="🔍 種目を検索" oninput="renderExercisePickerList()">
+            <div id="exercisePickerList" style="display:flex; flex-direction:column; gap:8px; max-height:55vh; overflow-y:auto;"></div>
+        </div>
+    </div>
+
     <div class="modal" id="exerciseModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -1454,6 +1486,8 @@
         }
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
+            const metaTheme2 = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme2) metaTheme2.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1' }[t] || '#000000');
             try { localStorage.setItem('workout_theme_v1', t); } catch (e) {}
             refreshThemeOptions();
             if (window.__drawAppIcon) window.__drawAppIcon();
@@ -2390,6 +2424,7 @@
             if (filtered.some(e => e.name === currentVal)) {
                 select.value = currentVal;
             }
+            syncPickerDisplay();
         }
 
         // 【要件A】対象種目の前回トレーニング日データ・PR・現在セットに応じた予測値を計算して反映
@@ -2485,6 +2520,62 @@
             updateDisplayValues();
         }
 
+        function syncPickerDisplay() {
+            const select = document.getElementById('exerciseSelect');
+            const label = document.getElementById('exercisePickerLabel');
+            if (!select || !label) return;
+            const opt = select.options[select.selectedIndex];
+            label.textContent = opt ? opt.textContent : '種目を選択';
+        }
+        function openExercisePicker() {
+            const search = document.getElementById('exercisePickerSearch');
+            if (search) search.value = '';
+            renderExercisePickerList();
+            document.getElementById('exercisePickerModal').classList.add('open');
+        }
+        function closeExercisePicker() {
+            document.getElementById('exercisePickerModal').classList.remove('open');
+        }
+        function renderExercisePickerList() {
+            const list = document.getElementById('exercisePickerList');
+            const select = document.getElementById('exerciseSelect');
+            if (!list || !select) return;
+            const q = (document.getElementById('exercisePickerSearch').value || '').trim();
+            const current = select.value;
+            list.innerHTML = '';
+            let shown = 0;
+            Array.from(select.options).forEach(opt => {
+                if (q && opt.value.indexOf(q) < 0) return;
+                shown++;
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'exercise-row';
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = opt.textContent;
+                nameSpan.style.cssText = 'font-size:0.98rem;' + (opt.value === current ? 'font-weight:bold; color:var(--accent);' : '');
+                b.appendChild(nameSpan);
+                if (opt.value === current) {
+                    const chk = document.createElement('span');
+                    chk.textContent = '✓';
+                    chk.style.color = 'var(--accent)';
+                    b.appendChild(chk);
+                }
+                b.onclick = function() { selectExerciseFromPicker(opt.value); };
+                list.appendChild(b);
+            });
+            if (!shown) {
+                const div = document.createElement('div');
+                div.style.cssText = 'color:var(--text-sub); text-align:center; padding:14px; font-size:0.88rem;';
+                div.textContent = '該当する種目がありません';
+                list.appendChild(div);
+            }
+        }
+        function selectExerciseFromPicker(name) {
+            const select = document.getElementById('exerciseSelect');
+            select.value = name;
+            closeExercisePicker();
+            onExerciseChange();
+        }
         function onExerciseChange() {
             const exName = document.getElementById('exerciseSelect').value;
             const exObj = defaultExercises.find(e => e.name === exName);
@@ -2494,6 +2585,7 @@
             document.getElementById('weightUnitLabel').innerText = isCardio ? 'Lv/km' : 'kg';
             document.getElementById('repsSectionLabel').innerText = isCardio ? '時間 (TIME)' : '回数 (REPS)';
             document.getElementById('repsUnitLabel').innerText = isCardio ? '分' : 'reps';
+            syncPickerDisplay();
 
             if (!workoutLogs[currentDayStr]) workoutLogs[currentDayStr] = [];
             const todaySetsForEx = (workoutLogs[currentDayStr] || []).filter(s => s.exerciseName === exName);
