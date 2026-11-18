@@ -109,6 +109,7 @@
         }
         body {
             overflow-x: hidden;
+            overflow-x: clip;
         }
         body {
             padding-bottom: calc(82px + env(safe-area-inset-bottom));
@@ -1014,6 +1015,7 @@
         .picker-display { display: block; width: 100%; text-align: left; cursor: pointer; }
         #exercisePickerList { -webkit-overflow-scrolling: touch; }
         #exercisePickerList .exercise-row { width: 100%; text-align: left; color: inherit; }
+        html[data-theme="kinetic"] .nav-bar { background: #000000; backdrop-filter: none; -webkit-backdrop-filter: none; }
         #desktopModeBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 10005; background: #ffb800; color: #111111; padding: 4vw; font-size: 4.6vw; line-height: 1.55; font-weight: bold; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
         #desktopModeBanner button { margin-top: 2.5vw; font-size: 4.2vw; font-weight: bold; padding: 1.8vw 5vw; border: none; border-radius: 999px; background: #111111; color: #ffffff; cursor: pointer; }
     </style>
