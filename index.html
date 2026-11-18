@@ -2260,6 +2260,7 @@
         let timerEndTime = 0;
         let scheduledAudioNodes = [];
         let alarmHtmlAudio = null;
+        let alarmAudioUrl = null;
         let wakeLockSentinel = null;
         let alarmFiredForCurrentTimer = false;
 
@@ -2310,9 +2311,11 @@
                 }
 
                 const blob = new Blob([buffer], { type: 'audio/wav' });
-                alarmHtmlAudio = new Audio(URL.createObjectURL(blob));
+                alarmAudioUrl = URL.createObjectURL(blob);
+                alarmHtmlAudio = new Audio(alarmAudioUrl);
                 alarmHtmlAudio.playsInline = true;
                 alarmHtmlAudio.preload = 'auto';
+                alarmHtmlAudio.addEventListener('ended', () => { detachAlarmAudio(); });
             } catch (e) {}
         }
 
@@ -2339,6 +2342,7 @@
                             alarmHtmlAudio.currentTime = 0;
                             alarmHtmlAudio.volume = 1.0;
                             alarmHtmlAudio._unlocked = true;
+                            detachAlarmAudio();
                         }).catch(() => {});
                     }
                 }
@@ -2398,6 +2402,34 @@
             scheduledAudioNodes = [];
         }
 
+        // アラーム用の<audio>をメディアセッションから切り離す（イヤホンの再生ボタンで再再生されないように）
+        function detachAlarmAudio() {
+            try {
+                if (alarmHtmlAudio) {
+                    alarmHtmlAudio.pause();
+                    alarmHtmlAudio.removeAttribute('src');
+                    alarmHtmlAudio.load();
+                }
+            } catch (e) {}
+        }
+        function attachAlarmAudio() {
+            try {
+                if (alarmHtmlAudio && alarmAudioUrl && !alarmHtmlAudio.getAttribute('src')) {
+                    alarmHtmlAudio.src = alarmAudioUrl;
+                    alarmHtmlAudio.load();
+                }
+            } catch (e) {}
+        }
+        // アラームが鳴り終わった後に音声セッションを終了する（次のタイマー動作中は何もしない）
+        function releaseAudioSessionSoon() {
+            setTimeout(() => {
+                if (timerInterval) return;
+                clearScheduledWebAudio();
+                detachAlarmAudio();
+                try { if (audioCtx && audioCtx.state === 'running') audioCtx.suspend(); } catch (e) {}
+            }, 2200);
+        }
+
         // タップした瞬間に「delaySec秒後」のアラーム音をWeb Audio APIに直接予約する
         function scheduleWebAudioAlarmAt(delaySec) {
             try {
@@ -2441,6 +2473,7 @@
         // 0秒到達時のフォールバック再生（HTML5 Audio + バイブレーション）
         function triggerAlarmCompletionEffects(playImmediateWebAudio = false) {
             try {
+                attachAlarmAudio();
                 if (playImmediateWebAudio) {
                     scheduleWebAudioAlarmAt(0);
                 }
@@ -2452,6 +2485,7 @@
                 if (navigator.vibrate) {
                     navigator.vibrate([250, 100, 250, 100, 300]);
                 }
+                releaseAudioSessionSoon();
             } catch (e) {}
         }
 
@@ -2468,6 +2502,7 @@
             document.body.classList.add('has-floating-timer');
 
             alarmFiredForCurrentTimer = false;
+            attachAlarmAudio();
             timerEndTime = Date.now() + sec * 1000;
 
             // タップイベント内で未来のアラーム音を予約 ＆ スリープ防止ロック
@@ -2522,6 +2557,7 @@
                 alarmHtmlAudio.pause();
                 alarmHtmlAudio.currentTime = 0;
             }
+            detachAlarmAudio();
             releaseScreenWakeLock();
             const bar = document.getElementById('floatingTimerBar');
             bar.classList.remove('active', 'alarm');
