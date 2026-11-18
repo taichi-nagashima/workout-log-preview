@@ -8,58 +8,82 @@
     <meta name="apple-mobile-web-app-title" content="筋トレ記録">
     <title>筋トレ記録</title>
     <script>
+        // テーマ初期化（CSS適用前に保存済みテーマを反映する）
         (function() {
+            var t = 'kinetic';
+            try {
+                var saved = localStorage.getItem('workout_theme_v1');
+                if (['kinetic', 'tactile', 'editorial'].indexOf(saved) >= 0) t = saved;
+            } catch (e) {}
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <script>
+        // アプリアイコン生成（テーマ連動）: ダンベル + WORKOUT
+        window.__drawAppIcon = function() {
+          try {
+            var theme = document.documentElement.getAttribute('data-theme') || 'kinetic';
+            var P = {
+                kinetic:   { bg0: '#17171a', bg1: '#000000', ring: 'rgba(210, 255, 40, 0.40)', g0: '#e4ff70', g1: '#a8d81e', text: '#ffb800' },
+                tactile:   { bg0: '#161618', bg1: '#0a0a0b', ring: 'rgba(255, 87, 34, 0.45)',  g0: '#ff7043', g1: '#e64a19', text: '#e5b84b' },
+                editorial: { bg0: '#f7f6f2', bg1: '#eae8e1', ring: 'rgba(217, 56, 30, 0.50)',  g0: '#2a2a28', g1: '#181816', text: '#d9381e' }
+            }[theme] || {};
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            if (!ctx.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h) { this.rect(x, y, w, h); return this; };
+            }
 
-            // 1. 背景（ダークグラデーション）
+            // 1. 背景グラデーション
             const grad = ctx.createLinearGradient(0, 0, 512, 512);
-            grad.addColorStop(0, '#17171a');
-            grad.addColorStop(1, '#000000');
+            grad.addColorStop(0, P.bg0);
+            grad.addColorStop(1, P.bg1);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 512, 512);
 
-            // 2. 外枠のアクセントリング
-            ctx.strokeStyle = 'rgba(210, 255, 40, 0.40)';
-            ctx.lineWidth = 16;
-            ctx.strokeRect(24, 24, 464, 464);
-
-            // 3. ダンベルアイコンの描画（斜め45度・ブルーグラデーション）
-            ctx.save();
-            ctx.translate(256, 235);
-            ctx.rotate(-Math.PI / 4);
-
-            const accentGrad = ctx.createLinearGradient(-160, 0, 160, 0);
-            accentGrad.addColorStop(0, '#e4ff70');
-            accentGrad.addColorStop(1, '#a8d81e');
-            ctx.fillStyle = accentGrad;
-
-            // シャフト（中央のバー）
-            ctx.fillRect(-100, -18, 200, 36);
-            // 左右の内側プレート（大）
+            // 2. 角丸のアクセントリング
+            ctx.strokeStyle = P.ring;
+            ctx.lineWidth = 14;
             ctx.beginPath();
-            ctx.roundRect(-145, -85, 42, 170, 14);
-            ctx.roundRect(103, -85, 42, 170, 14);
-            // 左右の外側プレート（小）
-            ctx.roundRect(-190, -60, 34, 120, 12);
-            ctx.roundRect(156, -60, 34, 120, 12);
+            ctx.roundRect(26, 26, 460, 460, 72);
+            ctx.stroke();
+
+            // 3. ダンベル（斜め45度）
+            ctx.save();
+            ctx.translate(256, 232);
+            ctx.rotate(-Math.PI / 4);
+            const accentGrad = ctx.createLinearGradient(-160, 0, 160, 0);
+            accentGrad.addColorStop(0, P.g0);
+            accentGrad.addColorStop(1, P.g1);
+            ctx.fillStyle = accentGrad;
+            ctx.fillRect(-100, -18, 200, 36);
+            ctx.beginPath();
+            ctx.roundRect(-145, -85, 42, 170, 18);
+            ctx.roundRect(103, -85, 42, 170, 18);
+            ctx.roundRect(-190, -60, 34, 120, 15);
+            ctx.roundRect(156, -60, 34, 120, 15);
             ctx.fill();
             ctx.restore();
 
-            // 4. 下部に「WORKOUT」テキスト
-            ctx.fillStyle = '#ffb800';
-            ctx.font = 'bold 46px -apple-system, BlinkMacSystemFont, sans-serif';
+            // 4. 「WORKOUT」テキスト
+            ctx.fillStyle = P.text;
+            ctx.font = '800 47px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('WORKOUT', 256, 435);
+            try { ctx.letterSpacing = '3px'; } catch (e) {}
+            ctx.fillText('WORKOUT', 256, 438);
 
-            // linkタグ（apple-touch-icon）としてheadに自動セット
-            const link = document.createElement('link');
-            link.rel = 'apple-touch-icon';
-            link.href = canvas.toDataURL('image/png');
-            document.head.appendChild(link);
-        })();
+            if (!window.__iconLink) {
+                window.__iconLink = document.createElement('link');
+                window.__iconLink.rel = 'apple-touch-icon';
+                document.head.appendChild(window.__iconLink);
+            }
+            window.__iconLink.href = canvas.toDataURL('image/png');
+          } catch (e) {}
+        };
+        window.__drawAppIcon();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -804,60 +828,192 @@
         .login-error { color: var(--danger); font-size: 0.82rem; min-height: 1em; text-align: center; }
     </style>
 
-    <style id="kinetic-theme">
-        /* ===== 案2 Kinetic Club 上書きテーマ（プレビュー） ===== */
-        header { background: #000000; border-bottom: none; }
-        .sound-test-btn { background: #1f1f23; border: none; color: var(--text-sub); border-radius: 999px; padding: 6px 12px; }
-        .date-badge { background: #1f1f23; color: #ffffff; border-radius: 999px; font-weight: 700; }
-        .card { border: none; box-shadow: none; border-radius: 28px; padding: 20px 18px; }
-        .stat-card { border: none; box-shadow: none; border-radius: 24px; }
-        .stat-value { font-weight: 800; }
-        .section-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; }
-        .category-scroll { gap: 7px; }
-        .cat-btn { background: #1f1f23; border: none; color: #c7c7cc; border-radius: 999px; font-weight: 700; padding: 8px 15px; }
-        .cat-btn.active { background: #ffffff; color: #000000; border: none; }
-        .select-box { background-color: #1f1f23; border: none; border-radius: 16px; font-weight: 700; }
-        .prev-info-bar { background: rgba(210, 255, 40, 0.08); border: none; border-radius: 14px; }
-        .input-display { font-size: 4.1rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
-        .input-display.swiping { background-color: rgba(210, 255, 40, 0.12); }
-        .input-display .unit { font-size: 1.1rem; font-weight: 800; color: var(--text-sub); }
-        .swipe-hint { letter-spacing: 0.05em; }
-        .btn-row { gap: 10px; }
-        .adjust-btn { background: #1f1f23; border: none; border-radius: 999px; }
-        .adjust-btn:active { background: #333339; }
-        .main-adjust { background: #26262b; font-size: 1.35rem; padding: 14px 0; }
-        .timer-btn { background: #1f1f23; border: none; border-radius: 999px; font-weight: 700; padding: 9px 0; }
-        .timer-btn.active { background: var(--accent); color: #000000; border: none; }
-        .record-exec-btn { background: var(--accent); color: #000000; border-radius: 999px; font-weight: 800; box-shadow: none; padding: 18px 12px; }
-        .record-exec-btn:active { background: var(--accent-hover); }
-        .record-skip-btn { background: #1f1f23; border: none; border-radius: 24px; }
-        .record-skip-btn:active { background: #26262b; border: none; }
-        .set-item-card { background: #1f1f23; border: none; border-radius: 14px; }
-        .action-icon-btn { background: #26262b; border: none; color: #e5e5ea; border-radius: 999px; }
-        .action-icon-btn.accent { color: var(--accent); border: none; }
-        .action-icon-btn.danger { color: var(--danger); border: none; }
-        .summary-banner-btn { background: var(--gold); color: #000000; box-shadow: none; border-radius: 999px; }
-        .floating-timer-bar { background: rgba(0, 0, 0, 0.94); border: 2px solid var(--accent); border-radius: 999px; box-shadow: none; }
-        .floating-timer-bar.alarm { border-color: var(--gold); background: rgba(255, 184, 0, 0.20); }
-        .ft-btn { background: #26262b; border: none; border-radius: 999px; }
-        .ft-btn.stop { color: var(--danger); border: none; }
-        #floatingTimeLeft { color: var(--accent) !important; font-weight: 900; }
-        .cal-date { background: var(--card-bg); border-radius: 14px; }
-        .cal-date.has-record { background: rgba(210, 255, 40, 0.14); border-color: transparent; }
-        .cal-date.today-mark { border-color: var(--gold); }
-        .cal-date.selected { background: var(--accent); color: #000000; }
-        .cal-date.selected .cal-dot { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
-        .cal-legend { border-top: none; }
-        .search-input { background-color: var(--card-bg); border: none; border-radius: 999px; }
-        .add-ex-btn { background: var(--accent); color: #000000; border-radius: 999px; }
-        .exercise-row { border: none; border-radius: 20px; }
-        .modal-content { border-top: none; border-radius: 28px 28px 0 0; }
-        .form-input { background: #1f1f23; border: none; border-radius: 14px; }
-        .close-modal { background: #26262b; }
-        .pr-badge { border-radius: 999px; padding: 2px 8px; }
-        .toast { background: var(--gold); color: #000000; box-shadow: 0 8px 20px rgba(0,0,0,0.45); }
-        .nav-bar { background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: none; }
-        .login-card { border: none; border-radius: 28px; }
+    <style id="theme-overrides">
+        /* ===== テーマ上書き（kinetic / tactile / editorial） ===== */
+        html[data-theme="tactile"] {
+            --bg-color: #0a0a0b; --card-bg: #161618; --card-hover: #222226;
+            --text-main: #f4f4f0; --text-sub: #78787e;
+            --accent: #ff5722; --accent-hover: #e64a19; --border: #26262a;
+            --danger: #ff5252; --success: #4caf50; --gold: #e5b84b;
+        }
+        html[data-theme="editorial"] {
+            --bg-color: #eae8e1; --card-bg: #f7f6f2; --card-hover: #efede6;
+            --text-main: #181816; --text-sub: #78756e;
+            --accent: #d9381e; --accent-hover: #b92c14; --border: #d8d5cd;
+            --danger: #c62828; --success: #2e7d32; --gold: #c88a2b;
+        }
+        /* 設定モーダルのテーマ選択ボタン（全テーマ共通） */
+        .theme-opt {
+            display: flex; align-items: center; gap: 12px; width: 100%;
+            background: var(--card-hover); color: var(--text-main);
+            border: 2px solid transparent; border-radius: 16px;
+            padding: 14px; cursor: pointer; text-align: left;
+        }
+        .theme-opt.selected { border-color: var(--accent); }
+        .theme-opt .dots { display: flex; gap: 4px; flex-shrink: 0; }
+        .theme-opt .dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+        .theme-opt .tname { font-weight: bold; font-size: 0.98rem; display: block; }
+        .theme-opt .tdesc { font-size: 0.78rem; color: var(--text-sub); display: block; margin-top: 2px; line-height: 1.45; }
+        .theme-opt .check { margin-left: auto; color: var(--accent); font-weight: bold; visibility: hidden; flex-shrink: 0; }
+        .theme-opt.selected .check { visibility: visible; }
+
+        /* ---------- 案2 Kinetic Club ---------- */
+        html[data-theme="kinetic"] header { background: #000000; border-bottom: none; }
+        html[data-theme="kinetic"] .sound-test-btn { background: #1f1f23; border: none; color: var(--text-sub); border-radius: 999px; padding: 6px 12px; }
+        html[data-theme="kinetic"] .date-badge { background: #1f1f23; color: #ffffff; border-radius: 999px; font-weight: 700; }
+        html[data-theme="kinetic"] .card { border: none; box-shadow: none; border-radius: 28px; padding: 20px 18px; }
+        html[data-theme="kinetic"] .stat-card { border: none; box-shadow: none; border-radius: 24px; }
+        html[data-theme="kinetic"] .stat-value { font-weight: 800; }
+        html[data-theme="kinetic"] .section-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; }
+        html[data-theme="kinetic"] .category-scroll { gap: 7px; }
+        html[data-theme="kinetic"] .cat-btn { background: #1f1f23; border: none; color: #c7c7cc; border-radius: 999px; font-weight: 700; padding: 8px 15px; }
+        html[data-theme="kinetic"] .cat-btn.active { background: #ffffff; color: #000000; border: none; }
+        html[data-theme="kinetic"] .select-box { background-color: #1f1f23; border: none; border-radius: 16px; font-weight: 700; }
+        html[data-theme="kinetic"] .prev-info-bar { background: rgba(210, 255, 40, 0.08); border: none; border-radius: 14px; }
+        html[data-theme="kinetic"] .input-display { font-size: 4.1rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+        html[data-theme="kinetic"] .input-display.swiping { background-color: rgba(210, 255, 40, 0.12); }
+        html[data-theme="kinetic"] .input-display .unit { font-size: 1.1rem; font-weight: 800; color: var(--text-sub); }
+        html[data-theme="kinetic"] .swipe-hint { letter-spacing: 0.05em; }
+        html[data-theme="kinetic"] .btn-row { gap: 10px; }
+        html[data-theme="kinetic"] .adjust-btn { background: #1f1f23; border: none; border-radius: 999px; }
+        html[data-theme="kinetic"] .adjust-btn:active { background: #333339; }
+        html[data-theme="kinetic"] .main-adjust { background: #26262b; font-size: 1.35rem; padding: 14px 0; }
+        html[data-theme="kinetic"] .timer-btn { background: #1f1f23; border: none; border-radius: 999px; font-weight: 700; padding: 9px 0; }
+        html[data-theme="kinetic"] .timer-btn.active { background: var(--accent); color: #000000; border: none; }
+        html[data-theme="kinetic"] .record-exec-btn { background: var(--accent); color: #000000; border-radius: 999px; font-weight: 800; box-shadow: none; padding: 18px 12px; }
+        html[data-theme="kinetic"] .record-exec-btn:active { background: var(--accent-hover); }
+        html[data-theme="kinetic"] .record-skip-btn { background: #1f1f23; border: none; border-radius: 24px; }
+        html[data-theme="kinetic"] .record-skip-btn:active { background: #26262b; border: none; }
+        html[data-theme="kinetic"] .set-item-card { background: #1f1f23; border: none; border-radius: 14px; }
+        html[data-theme="kinetic"] .action-icon-btn { background: #26262b; border: none; color: #e5e5ea; border-radius: 999px; }
+        html[data-theme="kinetic"] .action-icon-btn.accent { color: var(--accent); border: none; }
+        html[data-theme="kinetic"] .action-icon-btn.danger { color: var(--danger); border: none; }
+        html[data-theme="kinetic"] .summary-banner-btn { background: var(--gold); color: #000000; box-shadow: none; border-radius: 999px; }
+        html[data-theme="kinetic"] .floating-timer-bar { background: rgba(0, 0, 0, 0.94); border: 2px solid var(--accent); border-radius: 999px; box-shadow: none; }
+        html[data-theme="kinetic"] .floating-timer-bar.alarm { border-color: var(--gold); background: rgba(255, 184, 0, 0.20); }
+        html[data-theme="kinetic"] .ft-btn { background: #26262b; border: none; border-radius: 999px; }
+        html[data-theme="kinetic"] .ft-btn.stop { color: var(--danger); border: none; }
+        html[data-theme="kinetic"] #floatingTimeLeft { color: var(--accent) !important; font-weight: 900; }
+        html[data-theme="kinetic"] .cal-date { background: var(--card-bg); border-radius: 14px; }
+        html[data-theme="kinetic"] .cal-date.has-record { background: rgba(210, 255, 40, 0.14); border-color: transparent; }
+        html[data-theme="kinetic"] .cal-date.today-mark { border-color: var(--gold); }
+        html[data-theme="kinetic"] .cal-date.selected { background: var(--accent); color: #000000; }
+        html[data-theme="kinetic"] .cal-date.selected .cal-dot { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
+        html[data-theme="kinetic"] .cal-legend { border-top: none; }
+        html[data-theme="kinetic"] .search-input { background-color: var(--card-bg); border: none; border-radius: 999px; }
+        html[data-theme="kinetic"] .add-ex-btn { background: var(--accent); color: #000000; border-radius: 999px; }
+        html[data-theme="kinetic"] .exercise-row { border: none; border-radius: 20px; }
+        html[data-theme="kinetic"] .modal-content { border-top: none; border-radius: 28px 28px 0 0; }
+        html[data-theme="kinetic"] .form-input { background: #1f1f23; border: none; border-radius: 14px; }
+        html[data-theme="kinetic"] .close-modal { background: #26262b; }
+        html[data-theme="kinetic"] .pr-badge { border-radius: 999px; padding: 2px 8px; }
+        html[data-theme="kinetic"] .toast { background: var(--gold); color: #000000; box-shadow: 0 8px 20px rgba(0,0,0,0.45); }
+        html[data-theme="kinetic"] .nav-bar { background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: none; }
+        html[data-theme="kinetic"] .login-card { border: none; border-radius: 28px; }
+
+        /* ---------- 案1 Tactile Hardware ---------- */
+        html[data-theme="tactile"] header { background: #0a0a0b; border-bottom: 1px solid #26262a; }
+        html[data-theme="tactile"] .sound-test-btn { background: #222226; border: 1px solid #26262a; color: #a9a9a3; border-radius: 8px; }
+        html[data-theme="tactile"] .date-badge { background: #222226; color: #c9c9c4; border-radius: 8px; font-family: ui-monospace, Menlo, monospace; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+        html[data-theme="tactile"] .card { border: 1px solid #26262a; border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); }
+        html[data-theme="tactile"] .stat-card { border: 1px solid #26262a; border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); }
+        html[data-theme="tactile"] .stat-value { font-family: ui-monospace, Menlo, monospace; }
+        html[data-theme="tactile"] .section-label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; }
+        html[data-theme="tactile"] .cat-btn { background: #161618; border: 1px solid #26262a; color: #a9a9a3; border-radius: 8px; }
+        html[data-theme="tactile"] .cat-btn.active { background: var(--accent); color: #0a0a0b; border-color: var(--accent); font-weight: 700; }
+        html[data-theme="tactile"] .select-box { background-color: #0e0e10; border: 1px solid #26262a; border-radius: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        html[data-theme="tactile"] .prev-info-bar { background: #161618; border: 1px solid #26262a; border-radius: 12px; }
+        html[data-theme="tactile"] .prev-info-bar span { color: var(--gold); }
+        html[data-theme="tactile"] .input-display { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 3.4rem; font-weight: 700; letter-spacing: -0.04em; background: #0e0e10; border-radius: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.65), inset 0 -1px 0 rgba(255,255,255,0.04); }
+        html[data-theme="tactile"] .input-display.swiping { background-color: #141416; }
+        html[data-theme="tactile"] .input-display .unit { font-size: 0.9rem; color: #78787e; }
+        html[data-theme="tactile"] .adjust-btn { background: #222226; border: none; border-bottom: 3px solid #000000; border-radius: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.09); }
+        html[data-theme="tactile"] .adjust-btn:active { background: #2a2a30; }
+        html[data-theme="tactile"] .main-adjust { background: #222226; font-size: 1.3rem; }
+        html[data-theme="tactile"] .timer-btn { background: #161618; border: 1px solid #26262a; border-radius: 8px; font-family: ui-monospace, Menlo, monospace; }
+        html[data-theme="tactile"] .timer-btn.active { background: #161618; color: var(--accent); border-color: var(--accent); }
+        html[data-theme="tactile"] .record-exec-btn { background: var(--accent); color: #0a0a0b; border-radius: 12px; font-weight: 800; box-shadow: 0 4px 0 #9e300e; }
+        html[data-theme="tactile"] .record-exec-btn:active { background: var(--accent-hover); box-shadow: 0 1px 0 #9e300e; }
+        html[data-theme="tactile"] .record-skip-btn { background: #161618; border: 1px solid #26262a; border-radius: 12px; }
+        html[data-theme="tactile"] .record-skip-btn:active { background: #222226; border-color: var(--accent); }
+        html[data-theme="tactile"] .set-item-card { background: #161618; border: 1px solid #26262a; border-radius: 12px; font-family: ui-monospace, Menlo, monospace; }
+        html[data-theme="tactile"] .action-icon-btn { background: #222226; border: 1px solid #26262a; color: #a9a9a3; border-radius: 8px; }
+        html[data-theme="tactile"] .action-icon-btn.accent { color: var(--accent); border-color: rgba(255, 87, 34, 0.45); }
+        html[data-theme="tactile"] .action-icon-btn.danger { color: var(--danger); border-color: rgba(255, 82, 82, 0.35); }
+        html[data-theme="tactile"] .summary-banner-btn { background: var(--gold); color: #0a0a0b; box-shadow: none; border-radius: 12px; }
+        html[data-theme="tactile"] .floating-timer-bar { background: #161618; border: 1px solid #26262a; border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); }
+        html[data-theme="tactile"] .floating-timer-bar.alarm { border-color: var(--gold); background: rgba(229, 184, 75, 0.16); }
+        html[data-theme="tactile"] .ft-btn { background: #222226; border: 1px solid #26262a; border-radius: 8px; }
+        html[data-theme="tactile"] .ft-btn.stop { color: var(--danger); border-color: rgba(255, 82, 82, 0.4); }
+        html[data-theme="tactile"] #floatingTimeLeft { color: var(--accent) !important; font-family: ui-monospace, Menlo, monospace; font-weight: 700; }
+        html[data-theme="tactile"] .cal-date { background: #161618; border: 1px solid transparent; border-radius: 12px; }
+        html[data-theme="tactile"] .cal-date.has-record { background: rgba(255, 87, 34, 0.12); border-color: var(--accent); }
+        html[data-theme="tactile"] .cal-date.today-mark { border-color: var(--gold); }
+        html[data-theme="tactile"] .cal-date.selected { background: var(--accent); color: #0a0a0b; }
+        html[data-theme="tactile"] .cal-date.selected .cal-dot { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
+        html[data-theme="tactile"] .search-input { background-color: #161618; border: 1px solid #26262a; border-radius: 12px; }
+        html[data-theme="tactile"] .add-ex-btn { background: var(--accent); color: #0a0a0b; border-radius: 12px; }
+        html[data-theme="tactile"] .exercise-row { border: 1px solid #26262a; border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+        html[data-theme="tactile"] .modal-content { border-top: 1px solid #26262a; border-radius: 20px 20px 0 0; }
+        html[data-theme="tactile"] .form-input { background: #0e0e10; border: 1px solid #26262a; border-radius: 10px; }
+        html[data-theme="tactile"] .close-modal { background: #222226; }
+        html[data-theme="tactile"] .pr-badge { border-radius: 4px; }
+        html[data-theme="tactile"] .toast { background: var(--gold); color: #000000; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        html[data-theme="tactile"] .nav-bar { background: #161618; border-top: 1px solid #000000; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+        html[data-theme="tactile"] .nav-item.active { color: var(--accent); }
+        html[data-theme="tactile"] .login-card { border: 1px solid #26262a; border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); }
+
+        /* ---------- 案3 Raw Editorial Log ---------- */
+        html[data-theme="editorial"] header { background: var(--card-bg); border-bottom: 1px solid var(--border); }
+        html[data-theme="editorial"] .sound-test-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-sub); border-radius: 999px; }
+        html[data-theme="editorial"] .date-badge { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; }
+        html[data-theme="editorial"] .card { border: 1px solid var(--border); border-radius: 16px; box-shadow: none; }
+        html[data-theme="editorial"] .stat-card { border: 1px solid var(--border); border-radius: 16px; box-shadow: none; }
+        html[data-theme="editorial"] .stat-value { font-weight: 300; font-size: 1.7rem; }
+        html[data-theme="editorial"] .section-label { font-size: 0.78rem; letter-spacing: 0.16em; }
+        html[data-theme="editorial"] .cat-btn { background: transparent; border: 1px solid var(--border); color: var(--text-sub); border-radius: 12px; }
+        html[data-theme="editorial"] .cat-btn.active { background: #181816; color: #f7f6f2; border-color: #181816; font-weight: 700; }
+        html[data-theme="editorial"] .select-box { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; }
+        html[data-theme="editorial"] .prev-info-bar { background: #fdf6e7; border: 1px solid var(--gold); border-radius: 12px; }
+        html[data-theme="editorial"] .prev-info-bar span { color: #9a6515; }
+        html[data-theme="editorial"] .input-display { font-size: 4.1rem; font-weight: 300; letter-spacing: -0.03em; line-height: 1.05; }
+        html[data-theme="editorial"] .input-display.swiping { background-color: rgba(217, 56, 30, 0.06); }
+        html[data-theme="editorial"] .input-display .unit { font-size: 1rem; color: var(--text-sub); }
+        html[data-theme="editorial"] .adjust-btn { background: transparent; border: 1.5px solid #181816; color: #181816; border-radius: 12px; }
+        html[data-theme="editorial"] .adjust-btn:active { background: #181816; color: #f7f6f2; }
+        html[data-theme="editorial"] .main-adjust { background: transparent; font-size: 1.3rem; }
+        html[data-theme="editorial"] .timer-btn { background: transparent; border: 1px solid var(--border); border-radius: 12px; }
+        html[data-theme="editorial"] .timer-btn.active { background: transparent; color: var(--text-main); border-color: #181816; font-weight: 700; }
+        html[data-theme="editorial"] .record-exec-btn { background: var(--accent); color: #ffffff; border-radius: 12px; font-weight: 700; box-shadow: none; }
+        html[data-theme="editorial"] .record-exec-btn:active { background: var(--accent-hover); }
+        html[data-theme="editorial"] .record-skip-btn { background: transparent; border: 1.5px solid #181816; border-radius: 12px; color: var(--text-main); }
+        html[data-theme="editorial"] .record-skip-btn:active { background: #efede6; border-color: #181816; }
+        html[data-theme="editorial"] .set-item-card { background: transparent; border: none; border-bottom: 1px dashed var(--border); border-radius: 0; }
+        html[data-theme="editorial"] .action-icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text-sub); border-radius: 999px; }
+        html[data-theme="editorial"] .action-icon-btn.accent { color: var(--accent); border-color: var(--accent); }
+        html[data-theme="editorial"] .action-icon-btn.danger { color: var(--danger); border-color: rgba(198, 40, 40, 0.4); }
+        html[data-theme="editorial"] .summary-banner-btn { background: #181816; color: #f7f6f2; box-shadow: none; border-radius: 12px; }
+        html[data-theme="editorial"] .floating-timer-bar { background: #181816; border: none; border-radius: 999px; box-shadow: 0 8px 24px rgba(24, 24, 22, 0.18); }
+        html[data-theme="editorial"] .floating-timer-bar.alarm { background: #181816; border: 2px solid var(--gold); }
+        html[data-theme="editorial"] .ft-left { color: #f7f6f2; }
+        html[data-theme="editorial"] .ft-btn { background: #f7f6f2; border: none; color: #181816; border-radius: 999px; }
+        html[data-theme="editorial"] .ft-btn.stop { color: var(--accent); border: none; }
+        html[data-theme="editorial"] #floatingTimeLeft { color: #f7f6f2 !important; font-weight: 300; }
+        html[data-theme="editorial"] .cal-date { background: var(--card-bg); border: 1px solid transparent; border-radius: 12px; }
+        html[data-theme="editorial"] .cal-date.has-record { background: rgba(217, 56, 30, 0.07); border-color: var(--accent); }
+        html[data-theme="editorial"] .cal-date.today-mark { border-color: var(--gold); }
+        html[data-theme="editorial"] .cal-date.selected { background: #181816; color: #f7f6f2; }
+        html[data-theme="editorial"] .cal-date.selected .cal-dot { box-shadow: 0 0 0 1px rgba(247, 246, 242, 0.9); }
+        html[data-theme="editorial"] .search-input { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
+        html[data-theme="editorial"] .add-ex-btn { background: var(--accent); color: #ffffff; border-radius: 12px; }
+        html[data-theme="editorial"] .exercise-row { border: 1px solid var(--border); border-radius: 16px; }
+        html[data-theme="editorial"] .modal-content { border-top: 1px solid var(--border); border-radius: 16px 16px 0 0; }
+        html[data-theme="editorial"] .form-input { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; }
+        html[data-theme="editorial"] .close-modal { background: var(--border); color: var(--text-main); }
+        html[data-theme="editorial"] .pr-badge { background: #fdf6e7; color: #9a6515; border: 1px solid var(--gold); border-radius: 4px; }
+        html[data-theme="editorial"] .toast { background: #181816; color: #f7f6f2; box-shadow: none; }
+        html[data-theme="editorial"] .nav-bar { background: var(--card-bg); border-top: 1px solid var(--border); }
+        html[data-theme="editorial"] .login-card { border: 1px solid var(--border); border-radius: 16px; }
     </style>
 </head>
 <body>
@@ -879,7 +1035,7 @@
             🏋️ 筋トレ記録 <span style="font-size:0.8rem; color:var(--accent);">Pro</span>
         </div>
         <div class="header-right">
-            <button class="sound-test-btn" onclick="doLogout()" title="ログアウト">ログアウト</button>
+            <button class="sound-test-btn" onclick="openSettingsModal()" title="設定">⚙ 設定</button>
             <button class="sound-test-btn" onclick="testAlarmSound()" title="アラーム音のテスト再生">🔊 音確認</button>
             <div class="date-badge" id="headerDateStr" onclick="resetToToday()" title="タップで今日に戻る" style="cursor:pointer;"></div>
         </div>
@@ -1096,6 +1252,36 @@
     </div>
 
     <!-- モーダル1: 種目詳細 ＆ 重量の成長曲線グラフ -->
+
+    <!-- 設定モーダル -->
+    <div class="modal" id="settingsModal" onclick="if(event.target === this) closeSettingsModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙ 設定</h3>
+                <button class="close-modal" onclick="closeSettingsModal()">✕</button>
+            </div>
+            <span class="section-label">🎨 テーマ（デザイン）</span>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
+                <button class="theme-opt" data-theme-opt="kinetic" onclick="setTheme('kinetic')">
+                    <span class="dots"><span class="dot" style="background:#000000; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#d2ff28;"></span><span class="dot" style="background:#ffb800;"></span></span>
+                    <span><span class="tname">Kinetic Club</span><span class="tdesc">真っ黒×ボルトライム。枠線なし・極太数字のスポーツ系</span></span>
+                    <span class="check">✓</span>
+                </button>
+                <button class="theme-opt" data-theme-opt="tactile" onclick="setTheme('tactile')">
+                    <span class="dots"><span class="dot" style="background:#0a0a0b; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#ff5722;"></span><span class="dot" style="background:#e5b84b;"></span></span>
+                    <span><span class="tname">Tactile Hardware</span><span class="tdesc">計器・ハードウェア風。マットな黒×オレンジ、数字は等幅で液晶窓風</span></span>
+                    <span class="check">✓</span>
+                </button>
+                <button class="theme-opt" data-theme-opt="editorial" onclick="setTheme('editorial')">
+                    <span class="dots"><span class="dot" style="background:#eae8e1; border:1px solid #c9c6bc;"></span><span class="dot" style="background:#d9381e;"></span><span class="dot" style="background:#181816;"></span></span>
+                    <span><span class="tname">Raw Editorial Log</span><span class="tdesc">紙のトレーニング日誌風。紙色×インク黒×朱赤のライトテーマ</span></span>
+                    <span class="check">✓</span>
+                </button>
+            </div>
+            <span class="section-label">アカウント</span>
+            <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
+        </div>
+    </div>
     <div class="modal" id="exerciseModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -1250,16 +1436,43 @@
         /******************************************************************
          * 1. 種目マスター初期データ ＆ 部位別カラー定義
          ******************************************************************/
-        const CATEGORY_COLORS = {
-            '胸': '#ff3b30',
-            '背中': '#00f5d4',
-            '肩': '#bf5af2',
-            '腕': '#ff9f0a',
-            '脚': '#32ade6',
-            'お尻': '#ff6482',
-            '腹筋': '#ffd60a',
-            '有酸素': '#30d158'
+        // テーマ別カラー（カテゴリ色・チャート色）
+        const THEME_CAT_COLORS = {
+            kinetic:   { '胸': '#ff3b30', '背中': '#00f5d4', '肩': '#bf5af2', '腕': '#ff9f0a', '脚': '#32ade6', 'お尻': '#ff6482', '腹筋': '#ffd60a', '有酸素': '#30d158' },
+            tactile:   { '胸': '#ff5252', '背中': '#4fc3f7', '肩': '#ff9800', '腕': '#4db6ac', '脚': '#ba68c8', 'お尻': '#f06292', '腹筋': '#e5b84b', '有酸素': '#81c784' },
+            editorial: { '胸': '#d9381e', '背中': '#1f6f6b', '肩': '#b26a00', '腕': '#5b7c99', '脚': '#7a4f8c', 'お尻': '#b83a5e', '腹筋': '#9a7b0a', '有酸素': '#3d7a44' }
         };
+        const THEME_ACCENT_FALLBACK = { kinetic: '#d2ff28', tactile: '#ff5722', editorial: '#d9381e' };
+        const THEME_CHART = {
+            kinetic:   { line: '#d2ff28', pointStroke: '#000000', grid: '#26262b', main: '#ffffff', sub: '#8e8e93' },
+            tactile:   { line: '#ff5722', pointStroke: '#0a0a0b', grid: '#26262a', main: '#f4f4f0', sub: '#78787e' },
+            editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' }
+        };
+        function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'kinetic'; }
+        function getCatColor(cat) {
+            const m = THEME_CAT_COLORS[currentTheme()] || THEME_CAT_COLORS.kinetic;
+            return m[cat] || THEME_ACCENT_FALLBACK[currentTheme()] || '#d2ff28';
+        }
+        // 設定モーダル・テーマ切替
+        function openSettingsModal() { refreshThemeOptions(); document.getElementById('settingsModal').classList.add('open'); }
+        function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+        function refreshThemeOptions() {
+            const t = currentTheme();
+            document.querySelectorAll('[data-theme-opt]').forEach(function(b) {
+                b.classList.toggle('selected', b.getAttribute('data-theme-opt') === t);
+            });
+        }
+        function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            try { localStorage.setItem('workout_theme_v1', t); } catch (e) {}
+            refreshThemeOptions();
+            if (window.__drawAppIcon) window.__drawAppIcon();
+            renderCalendar();
+            if (currentDetailExName && document.getElementById('exerciseModal').classList.contains('open')) {
+                renderGrowthChartSvg(currentDetailExName);
+            }
+            showToast('🎨 テーマを変更しました');
+        }
 
         const initialExercises = [
             // 【胸】
@@ -2532,7 +2745,7 @@
                 }
             });
             const dots = seenCats.slice(0, 4).map(cat => {
-                const color = CATEGORY_COLORS[cat] || '#d2ff28';
+                const color = getCatColor(cat);
                 return `<span class="cal-dot" style="background-color: ${color};" title="${cat}"></span>`;
             }).join('');
             return `<div class="cal-dots">${dots}</div>`;
@@ -2623,7 +2836,7 @@
                 let totalExVol = sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
                 let exObj = defaultExercises.find(e => e.name === exName);
                 let cat = exObj ? exObj.category : 'ワークアウト';
-                let catColor = CATEGORY_COLORS[cat] || 'var(--accent)';
+                let catColor = getCatColor(cat);
                 let isCardio = cat === '有酸素';
                 let wU = isCardio ? '負荷' : 'kg';
                 let rU = isCardio ? '分' : '回';
@@ -2827,6 +3040,7 @@
         }
 
         function renderGrowthChartSvg(exName) {
+            const tc = THEME_CHART[currentTheme()] || THEME_CHART.kinetic;
             const container = document.getElementById('growthChartContainer');
             const dailyMax = {};
 
@@ -2865,16 +3079,16 @@
 
             const polyLine = coords.map(c => `${c.x},${c.y}`).join(' ');
             const dotsHtml = coords.map(c => `
-                <circle cx="${c.x}" cy="${c.y}" r="4.5" fill="#d2ff28" stroke="#000000" stroke-width="2"/>
-                <text x="${c.x}" y="${c.y - 9}" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">${c.val}kg</text>
-                <text x="${c.x}" y="${h - 6}" fill="#8e8e93" font-size="10" text-anchor="middle">${c.dateLabel}</text>
+                <circle cx="${c.x}" cy="${c.y}" r="4.5" fill="${tc.line}" stroke="${tc.pointStroke}" stroke-width="2"/>
+                <text x="${c.x}" y="${c.y - 9}" fill="${tc.main}" font-size="11" font-weight="bold" text-anchor="middle">${c.val}kg</text>
+                <text x="${c.x}" y="${h - 6}" fill="${tc.sub}" font-size="10" text-anchor="middle">${c.dateLabel}</text>
             `).join('');
 
             container.innerHTML = `
                 <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:100%; overflow:visible;">
-                    <line x1="${padL}" y1="${padT}" x2="${w - padR}" y2="${padT}" stroke="#26262b" stroke-dasharray="3"/>
-                    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#26262b"/>
-                    ${coords.length > 1 ? `<polyline fill="none" stroke="#d2ff28" stroke-width="3" points="${polyLine}"/>` : ''}
+                    <line x1="${padL}" y1="${padT}" x2="${w - padR}" y2="${padT}" stroke="${tc.grid}" stroke-dasharray="3"/>
+                    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="${tc.grid}"/>
+                    ${coords.length > 1 ? `<polyline fill="none" stroke="${tc.line}" stroke-width="3" points="${polyLine}"/>` : ''}
                     ${dotsHtml}
                 </svg>
             `;
