@@ -1054,7 +1054,10 @@
 
             <!-- 今日のおすすめ -->
             <div class="card" id="recommendCard" style="display:none;">
-                <span class="section-label">💡 今日のおすすめ</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="section-label" style="margin-bottom:0;">💡 今日のおすすめ</span>
+                    <button class="action-icon-btn" onclick="hideRecommendation()">✕ 隠す</button>
+                </div>
                 <div id="recommendBody"></div>
             </div>
 
@@ -1265,6 +1268,11 @@
                     <span class="check">✓</span>
                 </button>
             </div>
+            <span class="section-label">💡 今日のおすすめ</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:22px;">
+                <span style="font-size:0.85rem; color:var(--text-sub); line-height:1.5;">記録タブ上部のおすすめカードの表示・非表示</span>
+                <button class="action-icon-btn" id="recToggleBtn" style="flex-shrink:0;" onclick="toggleRecommendationVisibility()">非表示にする</button>
+            </div>
             <span class="section-label">アカウント</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
         </div>
@@ -1441,7 +1449,7 @@
             return m[cat] || THEME_ACCENT_FALLBACK[currentTheme()] || '#d2ff28';
         }
         // 設定モーダル・テーマ切替
-        function openSettingsModal() { refreshThemeOptions(); document.getElementById('settingsModal').classList.add('open'); }
+        function openSettingsModal() { refreshThemeOptions(); refreshRecToggle(); document.getElementById('settingsModal').classList.add('open'); }
         function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
         function refreshThemeOptions() {
             const t = currentTheme();
@@ -2638,6 +2646,7 @@
             const card = document.getElementById('recommendCard');
             const body = document.getElementById('recommendBody');
             if (!card || !body) return;
+            try { if (localStorage.getItem('workout_rec_hide_v1') === '1') { card.style.display = 'none'; return; } } catch (e) {}
             const todayStr = getRealTodayStr();
             const stats = computeCategoryStats();
             const hasAnyLog = Object.keys(workoutLogs).some(d => (workoutLogs[d] || []).length > 0);
@@ -2715,6 +2724,27 @@
             addChips(best);
             if (chips.children.length) body.appendChild(chips);
             card.style.display = '';
+        }
+        function isRecommendationHidden() {
+            try { return localStorage.getItem('workout_rec_hide_v1') === '1'; } catch (e) { return false; }
+        }
+        function hideRecommendation() {
+            try { localStorage.setItem('workout_rec_hide_v1', '1'); } catch (e) {}
+            const card = document.getElementById('recommendCard');
+            if (card) card.style.display = 'none';
+            showToast('💡 おすすめを非表示にしました（設定から戻せます）');
+        }
+        function refreshRecToggle() {
+            const btn = document.getElementById('recToggleBtn');
+            if (btn) btn.textContent = isRecommendationHidden() ? '表示する' : '非表示にする';
+        }
+        function toggleRecommendationVisibility() {
+            try {
+                if (isRecommendationHidden()) localStorage.removeItem('workout_rec_hide_v1');
+                else localStorage.setItem('workout_rec_hide_v1', '1');
+            } catch (e) {}
+            refreshRecToggle();
+            renderRecommendation();
         }
         function pickRecommendedExercise(name, cat) {
             if (activeWorkoutCat !== cat) filterWorkoutCat(cat);
