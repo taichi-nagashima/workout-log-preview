@@ -19,15 +19,9 @@
         })();
     </script>
     <script>
-        // アプリアイコン生成（テーマ連動）: ダンベル + WORKOUT
+        // アプリアイコン生成（固定デザイン: 単色の斜めダンベル、テーマ連動なし）
         window.__drawAppIcon = function() {
           try {
-            var theme = document.documentElement.getAttribute('data-theme') || 'kinetic';
-            var P = {
-                kinetic:   { bg0: '#17171a', bg1: '#000000', ring: 'rgba(210, 255, 40, 0.40)', g0: '#e4ff70', g1: '#a8d81e', text: '#ffb800' },
-                tactile:   { bg0: '#161618', bg1: '#0a0a0b', ring: 'rgba(255, 87, 34, 0.45)',  g0: '#ff7043', g1: '#e64a19', text: '#e5b84b' },
-                editorial: { bg0: '#f7f6f2', bg1: '#eae8e1', ring: 'rgba(217, 56, 30, 0.50)',  g0: '#2a2a28', g1: '#181816', text: '#d9381e' }
-            }[theme] || {};
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 512;
@@ -37,43 +31,30 @@
                 CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h) { this.rect(x, y, w, h); return this; };
             }
 
-            // 1. 背景グラデーション
-            const grad = ctx.createLinearGradient(0, 0, 512, 512);
-            grad.addColorStop(0, P.bg0);
-            grad.addColorStop(1, P.bg1);
-            ctx.fillStyle = grad;
+            // 背景（フラットな近黒）
+            ctx.fillStyle = '#101012';
             ctx.fillRect(0, 0, 512, 512);
 
-            // 2. 角丸のアクセントリング
-            ctx.strokeStyle = P.ring;
-            ctx.lineWidth = 14;
-            ctx.beginPath();
-            ctx.roundRect(26, 26, 460, 460, 72);
-            ctx.stroke();
-
-            // 3. ダンベル（斜め45度）
+            // ダンベル（単色オフホワイト・斜め45度）
             ctx.save();
-            ctx.translate(256, 232);
+            ctx.translate(256, 256);
             ctx.rotate(-Math.PI / 4);
-            const accentGrad = ctx.createLinearGradient(-160, 0, 160, 0);
-            accentGrad.addColorStop(0, P.g0);
-            accentGrad.addColorStop(1, P.g1);
-            ctx.fillStyle = accentGrad;
-            ctx.fillRect(-100, -18, 200, 36);
+            ctx.fillStyle = '#f2f2ed';
+            // シャフト
             ctx.beginPath();
-            ctx.roundRect(-145, -85, 42, 170, 18);
-            ctx.roundRect(103, -85, 42, 170, 18);
-            ctx.roundRect(-190, -60, 34, 120, 15);
-            ctx.roundRect(156, -60, 34, 120, 15);
+            ctx.roundRect(-108, -22, 216, 44, 22);
+            ctx.fill();
+            // プレート（内側・大）
+            ctx.beginPath();
+            ctx.roundRect(-152, -108, 52, 216, 16);
+            ctx.roundRect(100, -108, 52, 216, 16);
+            ctx.fill();
+            // プレート（外側・小）
+            ctx.beginPath();
+            ctx.roundRect(-200, -74, 40, 148, 14);
+            ctx.roundRect(160, -74, 40, 148, 14);
             ctx.fill();
             ctx.restore();
-
-            // 4. 「WORKOUT」テキスト
-            ctx.fillStyle = P.text;
-            ctx.font = '800 47px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.textAlign = 'center';
-            try { ctx.letterSpacing = '3px'; } catch (e) {}
-            ctx.fillText('WORKOUT', 256, 438);
 
             if (!window.__iconLink) {
                 window.__iconLink = document.createElement('link');
