@@ -2322,9 +2322,7 @@
         // iOS 17+ のマナーモードでもメディア音として鳴らす設定 ＆ AudioContext起動
         function ensureAudioUnlocked() {
             try {
-                if (navigator.audioSession) {
-                    navigator.audioSession.type = 'playback';
-                }
+                try { if (navigator.audioSession) navigator.audioSession.type = 'transient'; } catch (e) {}
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (AudioCtx) {
                     if (!audioCtx) audioCtx = new AudioCtx();
@@ -2333,7 +2331,7 @@
                     }
                 }
                 // HTML5 Audioもユーザータップ時に一度無音でアンロックしておく
-                if (alarmHtmlAudio && !alarmHtmlAudio._unlocked) {
+                if (alarmHtmlAudio && !alarmHtmlAudio._unlocked && !(audioCtx && audioCtx.state === 'running')) {
                     alarmHtmlAudio.volume = 0.01;
                     const p = alarmHtmlAudio.play();
                     if (p !== undefined) {
@@ -2426,6 +2424,7 @@
                 if (timerInterval) return;
                 clearScheduledWebAudio();
                 detachAlarmAudio();
+                try { if (navigator.audioSession) navigator.audioSession.type = 'transient'; } catch (e) {}
                 try { if (audioCtx && audioCtx.state === 'running') audioCtx.suspend(); } catch (e) {}
             }, 2200);
         }
@@ -2474,6 +2473,7 @@
         function triggerAlarmCompletionEffects(playImmediateWebAudio = false) {
             try {
                 attachAlarmAudio();
+                try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
                 if (playImmediateWebAudio) {
                     scheduleWebAudioAlarmAt(0);
                 }
