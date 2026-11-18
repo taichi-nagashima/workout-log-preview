@@ -1071,6 +1071,12 @@
                 <button class="cat-btn" onclick="filterWorkoutCat('有酸素')">有酸素</button>
             </div>
 
+            <!-- 今日のおすすめ -->
+            <div class="card" id="recommendCard" style="display:none;">
+                <span class="section-label">💡 今日のおすすめ</span>
+                <div id="recommendBody"></div>
+            </div>
+
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span class="section-label" style="margin-bottom:0;">種目を選択</span>
@@ -2378,6 +2384,7 @@
             });
             updateExerciseDropdown();
             onExerciseChange();
+            renderRecommendation();
         }
 
         function updateExerciseDropdown() {
@@ -2611,7 +2618,133 @@
             }, 3000);
         }
 
+        /******************************************************************
+         * 今日のおすすめ提案（部位の休養日数から推奨部位と種目を出す）
+         ******************************************************************/
+        const REC_CATEGORIES = ['胸', '背中', '肩', '腕', '脚', 'お尻', '腹筋', '有酸素'];
+        function daysBetweenStr(aStr, bStr) {
+            const a = new Date(aStr + 'T00:00:00');
+            const b = new Date(bStr + 'T00:00:00');
+            return Math.round((b - a) / 86400000);
+        }
+        function computeCategoryStats() {
+            const catByName = {};
+            defaultExercises.forEach(ex => { catByName[ex.name] = ex.category; });
+            const lastByCat = {};
+            const lastByEx = {};
+            Object.keys(workoutLogs).forEach(dateStr => {
+                (workoutLogs[dateStr] || []).forEach(s => {
+                    const cat = catByName[s.exerciseName];
+                    if (cat && (!lastByCat[cat] || dateStr > lastByCat[cat])) lastByCat[cat] = dateStr;
+                    if (!lastByEx[s.exerciseName] || dateStr > lastByEx[s.exerciseName]) lastByEx[s.exerciseName] = dateStr;
+                });
+            });
+            return { lastByCat, lastByEx };
+        }
+        function suggestExercises(cat, lastByEx, n) {
+            return defaultExercises
+                .filter(ex => ex.category === cat)
+                .sort((a, b) => {
+                    const fa = a.fav ? 1 : 0, fb = b.fav ? 1 : 0;
+                    if (fb !== fa) return fb - fa;
+                    const la = lastByEx[a.name] || '', lb = lastByEx[b.name] || '';
+                    if (la !== lb) return la < lb ? -1 : 1;
+                    return (b.count || 0) - (a.count || 0);
+                })
+                .slice(0, n || 3);
+        }
+        function renderRecommendation() {
+            const card = document.getElementById('recommendCard');
+            const body = document.getElementById('recommendBody');
+            if (!card || !body) return;
+            const todayStr = getRealTodayStr();
+            const stats = computeCategoryStats();
+            const hasAnyLog = Object.keys(workoutLogs).some(d => (workoutLogs[d] || []).length > 0);
+            body.innerHTML = '';
+
+            const title = document.createElement('div');
+            title.style.cssText = 'font-size:1.05rem; font-weight:bold; margin-bottom:4px;';
+            const sub = document.createElement('div');
+            sub.style.cssText = 'font-size:0.82rem; color:var(--text-sub); margin-bottom:10px; line-height:1.5;';
+            const chips = document.createElement('div');
+            chips.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap;';
+
+            function addChips(cat) {
+                suggestExercises(cat, stats.lastByEx, 3).forEach(ex => {
+                    const b = document.createElement('button');
+                    b.className = 'timer-btn';
+                    b.style.cssText = 'flex:none; padding:9px 14px;';
+                    b.textContent = ex.name;
+                    b.onclick = function() { pickRecommendedExercise(ex.name, cat); };
+                    chips.appendChild(b);
+                });
+            }
+            function lastInfo(cat) {
+                const last = stats.lastByCat[cat];
+                if (!last) return 'まだ記録がありません';
+                if (last === todayStr) return '今日は実施済みです';
+                return daysBetweenStr(last, todayStr) + '日ぶり（前回 ' + last.slice(5).replace('-', '/') + '）';
+            }
+
+            if (!hasAnyLog) {
+                title.textContent = 'まずは胸から始めてみましょう';
+                sub.textContent = '記録がたまると、休ませている部位を自動で提案します。';
+                body.appendChild(title); body.appendChild(sub);
+                addChips('胸');
+                if (chips.children.length) body.appendChild(chips);
+                card.style.display = '';
+                return;
+            }
+
+            if (activeWorkoutCat && activeWorkoutCat !== '全て') {
+                const cat = activeWorkoutCat;
+                title.textContent = cat + 'のおすすめ種目';
+                sub.textContent = lastInfo(cat);
+                body.appendChild(title); body.appendChild(sub);
+                addChips(cat);
+                if (chips.children.length) body.appendChild(chips);
+                card.style.display = '';
+                return;
+            }
+
+            const trainedToday = REC_CATEGORIES.filter(c => stats.lastByCat[c] === todayStr);
+            if (trainedToday.length >= REC_CATEGORIES.length) {
+                title.textContent = '🎉 今日は全部位コンプリート！';
+                sub.textContent = 'お疲れさまでした。しっかり休みましょう。';
+                body.appendChild(title); body.appendChild(sub);
+                card.style.display = '';
+                return;
+            }
+
+            let best = null, bestDays = -1;
+            REC_CATEGORIES.forEach(cat => {
+                if (stats.lastByCat[cat] === todayStr) return;
+                const last = stats.lastByCat[cat];
+                const days = last ? daysBetweenStr(last, todayStr) : 9999;
+                if (days > bestDays) { bestDays = days; best = cat; }
+            });
+            const accent = document.createElement('span');
+            accent.style.color = 'var(--accent)';
+            accent.textContent = best;
+            title.appendChild(document.createTextNode('今日は '));
+            title.appendChild(accent);
+            title.appendChild(document.createTextNode(' がおすすめ'));
+            sub.textContent = lastInfo(best) + '。タップで種目をセットできます。';
+            body.appendChild(title); body.appendChild(sub);
+            addChips(best);
+            if (chips.children.length) body.appendChild(chips);
+            card.style.display = '';
+        }
+        function pickRecommendedExercise(name, cat) {
+            if (activeWorkoutCat !== cat) filterWorkoutCat(cat);
+            const select = document.getElementById('exerciseSelect');
+            select.value = name;
+            onExerciseChange();
+            select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         function renderTodaySets() {
+            renderRecommendation();
             const container = document.getElementById('todaySetsList');
             const selectedExName = document.getElementById('exerciseSelect').value;
             document.getElementById('todayLogHeaderLabel').innerText = `${currentDayStr} の記録済みセット`;
