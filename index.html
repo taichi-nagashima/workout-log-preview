@@ -1053,6 +1053,11 @@
             .ft-left { font-size: 0.95rem; }
         }
     </style>
+    <style id="timer-fix-css">
+        .rb-chunk { white-space: nowrap; }
+        .floating-timer-bar .ft-btn { min-height: 40px; padding: 8px 14px; font-size: 0.9rem; }
+        .floating-timer-bar .ft-btn.stop { min-width: 78px; min-height: 46px; padding: 10px 20px; font-size: 1rem; }
+    </style>
 </head>
 <body>
 
@@ -1204,7 +1209,7 @@
             <!-- 【要件D】メイン記録ボタン ＆ タイマースキップ即記録サブボタン -->
             <div class="record-action-row">
                 <button class="record-exec-btn" onclick="recordSet(false)">
-                    ✓ <span id="recordBtnText">第 1 セットを記録 & 90秒タイマー開始</span>
+                    ✓ <span id="recordBtnText"><span class="rb-chunk">第 1 セットを記録 &</span> <span class="rb-chunk">90秒タイマー開始</span></span>
                 </button>
                 <button class="record-skip-btn" onclick="recordSet(true)" title="タイマーを起動せず記録のみ完了します">
                     <span>⚡即記録</span>
@@ -2353,6 +2358,11 @@
                     audioCtx.resume();
                 }
                 if (timerInterval) {
+                    if (timerEndTime && Date.now() >= timerEndTime) {
+                        // バックグラウンド中に終了していた場合は、開いた瞬間に音を鳴らさず消化する
+                        alarmFiredForCurrentTimer = true;
+                        clearScheduledWebAudio();
+                    }
                     checkTimerTick();
                 }
             }
@@ -2718,7 +2728,7 @@
             currentSetNum = todaySetsForEx.length + 1;
 
             document.getElementById('currentSetLabel').innerText = `第 ${currentSetNum} セット`;
-            document.getElementById('recordBtnText').innerText = `第 ${currentSetNum} セットを記録 & ${currentTimerSec}秒タイマー開始`;
+            document.getElementById('recordBtnText').innerHTML = `<span class="rb-chunk">第 ${currentSetNum} セットを記録 &</span> <span class="rb-chunk">${currentTimerSec}秒タイマー開始</span>`;
 
             applySetPrediction(exName, currentSetNum);
             renderTodaySets();
@@ -2743,7 +2753,7 @@
             const exName = document.getElementById('exerciseSelect').value;
             currentSetNum = 1;
             document.getElementById('currentSetLabel').innerText = `第 ${currentSetNum} セット`;
-            document.getElementById('recordBtnText').innerText = `第 ${currentSetNum} セットを記録 & ${currentTimerSec}秒タイマー開始`;
+            document.getElementById('recordBtnText').innerHTML = `<span class="rb-chunk">第 ${currentSetNum} セットを記録 &</span> <span class="rb-chunk">${currentTimerSec}秒タイマー開始</span>`;
             applySetPrediction(exName, currentSetNum);
         }
 
@@ -2752,7 +2762,7 @@
             document.querySelectorAll('.timer-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.innerText === (sec + 's'));
             });
-            document.getElementById('recordBtnText').innerText = `第 ${currentSetNum} セットを記録 & ${sec}秒タイマー開始`;
+            document.getElementById('recordBtnText').innerHTML = `<span class="rb-chunk">第 ${currentSetNum} セットを記録 &</span> <span class="rb-chunk">${sec}秒タイマー開始</span>`;
         }
 
         // 【要件A・要件D】セット記録実行（skipTimer=true の場合はタイマー起動をスキップ）
@@ -2800,7 +2810,7 @@
 
             currentSetNum++;
             document.getElementById('currentSetLabel').innerText = `第 ${currentSetNum} セット`;
-            document.getElementById('recordBtnText').innerText = `第 ${currentSetNum} セットを記録 & ${currentTimerSec}秒タイマー開始`;
+            document.getElementById('recordBtnText').innerHTML = `<span class="rb-chunk">第 ${currentSetNum} セットを記録 &</span> <span class="rb-chunk">${currentTimerSec}秒タイマー開始</span>`;
 
             // 次のセット番号に対応する前回値（または直前セット値）を自動予測してセット
             applySetPrediction(exName, currentSetNum);
