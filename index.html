@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="筋トレ記録">
@@ -102,7 +102,6 @@
             color: var(--text-main);
             max-width: 600px;
             margin: 0 auto;
-            overscroll-behavior-y: none;
         }
         html {
             overflow-x: clip;
@@ -1301,6 +1300,9 @@
             </div>
             <span class="section-label">アカウント</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
+            <span class="section-label" style="margin-top:22px;">動作診断（不具合の報告用）</span>
+            <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="runDiagnostics()">診断を実行する</button>
+            <div id="diagResult" style="font-size:0.72rem; line-height:1.7; color:var(--text-sub); white-space:pre-wrap; word-break:break-all; margin-top:10px;"></div>
         </div>
     </div>
     <!-- 種目選択モーダル（カスタムピッカー） -->
@@ -2013,6 +2015,62 @@
             let startY = 0;
             let lastStepX = 0;
             let gestureMode = null; // 'swipe' | 'scroll' | null
+
+            // Pointer Events（モダンブラウザ）: 縦スクロールはブラウザが担い、横ドラッグだけを拾う
+            if (window.PointerEvent) {
+                let pDown = false;
+                let pId = null;
+                element.addEventListener('pointerdown', function(e) {
+                    if (pDown) return;
+                    pDown = true;
+                    pId = e.pointerId;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    lastStepX = startX;
+                    gestureMode = null;
+                    if (e.pointerType === 'mouse') {
+                        element.classList.add('swiping');
+                        try { element.setPointerCapture(e.pointerId); } catch (_) {}
+                    }
+                });
+                element.addEventListener('pointermove', function(e) {
+                    if (!pDown || e.pointerId !== pId) return;
+                    const currentX = e.clientX;
+                    const currentY = e.clientY;
+                    if (e.pointerType !== 'mouse') {
+                        const dx = currentX - startX;
+                        const dy = currentY - startY;
+                        if (gestureMode === null) {
+                            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                            if (Math.abs(dx) > Math.abs(dy)) {
+                                gestureMode = 'swipe';
+                                element.classList.add('swiping');
+                            } else {
+                                gestureMode = 'scroll';
+                            }
+                        }
+                        if (gestureMode !== 'swipe') return;
+                    }
+                    const diff = currentX - lastStepX;
+                    const steps = Math.trunc(diff / stepPx);
+                    if (steps !== 0) {
+                        onStepCallback(steps);
+                        lastStepX += steps * stepPx;
+                    }
+                });
+                const endPointer = function(e) {
+                    if (pId !== null && e.pointerId !== undefined && e.pointerId !== pId) return;
+                    pDown = false;
+                    pId = null;
+                    gestureMode = null;
+                    element.classList.remove('swiping');
+                };
+                element.addEventListener('pointerup', endPointer);
+                element.addEventListener('pointercancel', endPointer);
+                return;
+            }
+
+            // フォールバック（Pointer Events非対応ブラウザ向け・従来方式）
             let isPointerDown = false;
 
             // スマホ向けタッチイベント
@@ -2084,6 +2142,28 @@
                     element.classList.remove('swiping');
                 }
             });
+        }
+
+        function runDiagnostics() {
+            const el = document.getElementById('diagResult');
+            if (!el) return;
+            const lines = [];
+            lines.push('ブラウザ: ' + navigator.userAgent);
+            lines.push('物理画面: ' + screen.width + ' × ' + screen.height);
+            lines.push('表示領域: ' + window.innerWidth + ' × ' + window.innerHeight + ' / 倍率: ' + window.devicePixelRatio);
+            const disp = document.querySelector('.input-display');
+            lines.push('数字エリア touch-action: ' + (disp ? getComputedStyle(disp).touchAction : '不明'));
+            lines.push('body touch-action: ' + getComputedStyle(document.body).touchAction);
+            lines.push('ページ高さ: ' + document.documentElement.scrollHeight + 'px（表示 ' + window.innerHeight + 'px）');
+            el.textContent = lines.join('\n') + '\nスクロールテスト中…';
+            const y0 = window.scrollY || 0;
+            window.scrollTo(0, y0 + 150);
+            setTimeout(function() {
+                const y1 = window.scrollY || 0;
+                lines.push('スクロールテスト: ' + y0 + ' → ' + y1 + (y1 !== y0 ? '（プログラム操作では動きました）' : '（プログラム操作でも動きません）'));
+                window.scrollTo(0, y0);
+                el.textContent = lines.join('\n');
+            }, 200);
         }
 
         function syncExerciseCountsFromLogs() {
