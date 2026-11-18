@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="筋トレ記録">
     <title>筋トレ記録</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#0a0a0b">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script>
@@ -21,7 +21,7 @@
             } catch (e) {}
             document.documentElement.setAttribute('data-theme', t);
             var metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) metaTheme.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
+            if (metaTheme) metaTheme.setAttribute('content', { kinetic: '#0a0a0b', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
         })();
     </script>
     <script>
@@ -75,14 +75,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #141416;
-            --card-hover: #26262b;
+            --bg-color: #0a0a0b;
+            --card-bg: #161618;
+            --card-hover: #222226;
             --text-main: #ffffff;
             --text-sub: #8e8e93;
-            --accent: #d2ff28;
-            --accent-hover: #b8e62e;
-            --border: #26262b;
+            --accent: #ccff00;
+            --accent-hover: #aadd00;
+            --border: #2c2c30;
             --danger: #ff453a;
             --success: #30d158;
             --gold: #ffb800;
@@ -1065,6 +1065,8 @@
         html[data-theme="senior"] .nav-bar { background: #ffffff; border-top: 2px solid var(--border); }
         html[data-theme="senior"] .nav-item.active { color: var(--accent); }
         html[data-theme="senior"] .login-card { border: 1.5px solid var(--border); border-radius: 16px; }
+        html[data-theme="senior"] .adjust-btn { min-height: 56px; }
+        html[data-theme="senior"] .record-exec-btn { min-height: 60px; }
     </style>
     <style id="picker-css">
         #exerciseSelect { display: none; }
@@ -1075,9 +1077,14 @@
         #desktopModeBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 10005; background: #ffb800; color: #111111; padding: 4vw; font-size: 4.6vw; line-height: 1.55; font-weight: bold; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
         #desktopModeBanner button { margin-top: 2.5vw; font-size: 4.2vw; font-weight: bold; padding: 1.8vw 5vw; border: none; border-radius: 999px; background: #111111; color: #ffffff; cursor: pointer; }
     </style>
+    <style id="rec-prefs-css">
+        .rec-tag { font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; background: var(--card-hover); color: var(--text-sub); margin-left: 8px; white-space: nowrap; }
+        .pref-chip { padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .pref-chip.active { border-color: var(--accent); color: var(--accent); font-weight: 800; }
+    </style>
     <style id="wrap-fix-css">
         /* ===== 改行の最適化（どの端末でも文字を潰さない） ===== */
-        body { line-break: strict; }
+        body { line-break: strict; word-break: keep-all; overflow-wrap: anywhere; }
         /* ラベル・ボタン類は単語の途中で割らない */
         .header-title, .date-badge, .sound-test-btn,
         .ft-left, .ft-btn,
@@ -1181,7 +1188,7 @@
             <!-- 今日のおすすめ -->
             <div class="card" id="recommendCard" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span class="section-label" style="margin-bottom:0;">💡 今日のおすすめ</span>
+                    <span class="section-label" style="margin-bottom:0;" id="recommendHeadTitle">💡 今日のおすすめ</span>
                     <button class="action-icon-btn" id="recCollapseBtn" onclick="toggleRecommendationCollapse()">▴ 閉じる</button>
                 </div>
                 <div id="recommendBody"></div>
@@ -1280,6 +1287,7 @@
                     <span class="section-label" style="margin-bottom:0;" id="todayLogHeaderLabel">本日の記録済みセット</span>
                     <span style="font-size:0.75rem; color:var(--text-sub);" id="todayTotalSetsBadge">全0セット</span>
                 </div>
+                <div id="todayVolumeLine" style="font-size:0.82rem; color:var(--text-sub); margin-bottom:8px;"></div>
                 <div class="today-sets-list" id="todaySetsList">
                     <div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:10px;">まだ記録がありません</div>
                 </div>
@@ -1293,6 +1301,15 @@
 
         <!-- TAB 2: カレンダー -->
         <div id="tab-calendar" class="tab-content">
+            <div class="card" id="weeklyGoalCard" style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="section-label" style="margin-bottom:0;">📅 今週の目標</span>
+                    <span id="weeklyGoalText" style="font-size:0.85rem; font-weight:700;">- / - 回</span>
+                </div>
+                <div style="height:6px; border-radius:999px; background:var(--card-hover); overflow:hidden;">
+                    <div id="weeklyGoalBar" style="height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width 0.4s;"></div>
+                </div>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="section-label" id="statMonthDaysLabel">今月の実施日数</span>
@@ -1380,7 +1397,7 @@
             <span class="section-label">🎨 テーマ（デザイン）</span>
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
                 <button class="theme-opt" data-theme-opt="kinetic" onclick="setTheme('kinetic')">
-                    <span class="dots"><span class="dot" style="background:#000000; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#d2ff28;"></span><span class="dot" style="background:#ffb800;"></span></span>
+                    <span class="dots"><span class="dot" style="background:#0a0a0b; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#ccff00;"></span><span class="dot" style="background:#ffb800;"></span></span>
                     <span><span class="tname">Kinetic Club</span><span class="tdesc">真っ黒×ボルトライム。枠線なし・極太数字のスポーツ系</span></span>
                     <span class="check">✓</span>
                 </button>
@@ -1399,6 +1416,17 @@
                     <span><span class="tname">シンプル</span><span class="tdesc">文字が大きく、はっきり見える高コントラスト表示</span></span>
                     <span class="check">✓</span>
                 </button>
+            </div>
+            <span class="section-label">💡 おすすめの設定</span>
+            <div style="margin-bottom:8px; font-size:0.8rem; color:var(--text-sub);">トレーニング目標</div>
+            <div id="recGoalChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;"></div>
+            <div style="margin-bottom:8px; font-size:0.8rem; color:var(--text-sub);">使える器具（未選択＝すべて対象）</div>
+            <div id="recEquipChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;"></div>
+            <div style="margin-bottom:8px; font-size:0.8rem; color:var(--text-sub);">週間目標（週に何回トレーニングするか）</div>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:22px;">
+                <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() - 1)">−</button>
+                <span id="weeklyGoalSettingLabel" style="font-weight:700; font-size:1rem;">週3回</span>
+                <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() + 1)">＋</button>
             </div>
             <span class="section-label">アカウント</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
@@ -1580,9 +1608,9 @@
             editorial: { '胸': '#d9381e', '背中': '#1f6f6b', '肩': '#b26a00', '腕': '#5b7c99', '脚': '#7a4f8c', 'お尻': '#b83a5e', '腹筋': '#9a7b0a', '有酸素': '#3d7a44' },
             senior:    { '胸': '#dc2626', '背中': '#1d4ed8', '肩': '#d97706', '腕': '#059669', '脚': '#7c3aed', 'お尻': '#db2777', '腹筋': '#0e7490', '有酸素': '#4d7c0f' }
         };
-        const THEME_ACCENT_FALLBACK = { kinetic: '#d2ff28', tactile: '#ff5722', editorial: '#d9381e', senior: '#1d4ed8' };
+        const THEME_ACCENT_FALLBACK = { kinetic: '#ccff00', tactile: '#ff5722', editorial: '#d9381e', senior: '#1d4ed8' };
         const THEME_CHART = {
-            kinetic:   { line: '#d2ff28', pointStroke: '#000000', grid: '#26262b', main: '#ffffff', sub: '#8e8e93' },
+            kinetic:   { line: '#ccff00', pointStroke: '#0a0a0b', grid: '#2c2c30', main: '#ffffff', sub: '#8e8e93' },
             tactile:   { line: '#ff5722', pointStroke: '#0a0a0b', grid: '#26262a', main: '#f4f4f0', sub: '#78787e' },
             editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' },
             senior:    { line: '#1d4ed8', pointStroke: '#ffffff', grid: '#ddd8c2', main: '#141414', sub: '#45453e' }
@@ -1590,10 +1618,10 @@
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'kinetic'; }
         function getCatColor(cat) {
             const m = THEME_CAT_COLORS[currentTheme()] || THEME_CAT_COLORS.kinetic;
-            return m[cat] || THEME_ACCENT_FALLBACK[currentTheme()] || '#d2ff28';
+            return m[cat] || THEME_ACCENT_FALLBACK[currentTheme()] || '#ccff00';
         }
         // 設定モーダル・テーマ切替
-        function openSettingsModal() { refreshThemeOptions(); document.getElementById('settingsModal').classList.add('open'); }
+        function openSettingsModal() { refreshThemeOptions(); renderRecPrefsUI(); document.getElementById('settingsModal').classList.add('open'); }
         function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
         function refreshThemeOptions() {
             const t = currentTheme();
@@ -1604,7 +1632,7 @@
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             const metaTheme2 = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme2) metaTheme2.setAttribute('content', { kinetic: '#000000', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
+            if (metaTheme2) metaTheme2.setAttribute('content', { kinetic: '#0a0a0b', tactile: '#0a0a0b', editorial: '#eae8e1', senior: '#fffef7' }[t] || '#000000');
             try { localStorage.setItem('workout_theme_v1', t); } catch (e) {}
             refreshThemeOptions();
             if (window.__drawAppIcon) window.__drawAppIcon();
@@ -2113,6 +2141,7 @@
             );
         }
 
+        function swipeDeadZonePx() { return currentTheme() === 'senior' ? 40 : 0; }
         function setupHorizontalSwipe(element, stepPx, onStepCallback) {
             if (!element) return;
             let startX = 0;
@@ -2124,6 +2153,7 @@
             if (window.PointerEvent) {
                 let pDown = false;
                 let pId = null;
+                let deadApplied = false;
                 element.addEventListener('pointerdown', function(e) {
                     if (pDown) return;
                     pDown = true;
@@ -2132,6 +2162,7 @@
                     startY = e.clientY;
                     lastStepX = startX;
                     gestureMode = null;
+                    deadApplied = false;
                     if (e.pointerType === 'mouse') {
                         element.classList.add('swiping');
                         try { element.setPointerCapture(e.pointerId); } catch (_) {}
@@ -2149,11 +2180,20 @@
                             if (Math.abs(dx) > Math.abs(dy)) {
                                 gestureMode = 'swipe';
                                 element.classList.add('swiping');
+                                lastStepX = startX + Math.sign(dx) * swipeDeadZonePx();
+                                deadApplied = true;
                             } else {
                                 gestureMode = 'scroll';
                             }
                         }
                         if (gestureMode !== 'swipe') return;
+                    }
+                    if (!deadApplied) {
+                        const dz = swipeDeadZonePx();
+                        if (dz && Math.abs(currentX - startX) > 2) {
+                            lastStepX = startX + Math.sign(currentX - startX) * dz;
+                        }
+                        deadApplied = true;
                     }
                     const diff = currentX - lastStepX;
                     const steps = Math.trunc(diff / stepPx);
@@ -2198,6 +2238,7 @@
                     if (Math.abs(dx) > Math.abs(dy)) {
                         gestureMode = 'swipe';
                         element.classList.add('swiping');
+                        lastStepX = startX + Math.sign(dx) * swipeDeadZonePx();
                     } else {
                         gestureMode = 'scroll';
                     }
@@ -2934,6 +2975,103 @@
          * 今日のおすすめ提案（部位の休養日数から推奨部位と種目を出す）
          ******************************************************************/
         const REC_CATEGORIES = ['胸', '背中', '肩', '腕', '脚', 'お尻', '腹筋', '有酸素'];
+        const EQUIP_BY_NAME = {
+            'プレートロード式 チェストプレス': ['machine'], 'スタンディング マルチ フライト': ['machine'], 'インクライン ベンチプレス': ['barbell', 'bench'], 'ダンベルプレス': ['dumbbell', 'bench'], 'スミスマシン ベンチプレス': ['smith', 'bench'], 'ディップス': ['bodyweight'], 'バーベル ベンチプレス': ['barbell', 'bench'], 'チェストプレス(マシン)': ['machine'], 'インクライン ダンベルプレス': ['dumbbell', 'bench'], 'ペックフライ': ['machine'], 'ケーブル クロスオーバー': ['machine'], 'ダンベル フライ': ['dumbbell', 'bench'], 'スミスマシン インクラインプレス': ['smith', 'bench'], 'デクライン ベンチプレス': ['barbell', 'bench'], 'プッシュアップ': ['bodyweight'],
+            'ラットプルダウン': ['machine'], 'プレートロード式ラットプルダウン': ['machine'], 'チンニング(懸垂)': ['bodyweight'], 'シーテッド ロー': ['machine'], 'デッドリフト': ['barbell'], 'ワンハンド ダンベル ローイング': ['dumbbell'], 'ケーブル シーテッドローイング': ['machine'], 'ベントオーバー バーベルローイング': ['barbell'], 'Tバー ローイング': ['barbell'], 'ストレートアーム プルダウン': ['machine'], 'アシスト チンニング': ['machine'], 'バックエクステンション': ['bodyweight'], 'ダンベル シュラッグ': ['dumbbell'], 'リバースグリップ ラットプルダウン': ['machine'],
+            'ショルダープレス(マシン)': ['machine'], 'ダンベル サイドレイズ': ['dumbbell'], 'ダンベル ショルダープレス': ['dumbbell'], 'ダンベル リア レイズ': ['dumbbell'], 'スミスマシン ショルダープレス': ['smith'], 'ケーブル フェイスプル': ['machine'], 'アーノルドプレス': ['dumbbell'], 'ケーブル サイドレイズ': ['machine'], 'ダンベル フロントレイズ': ['dumbbell'], 'アップライトロー': ['barbell'], 'リアデルト (マシン)': ['machine'], 'プレートロード ショルダープレス': ['machine'],
+            'インクライン ダンベルカール': ['dumbbell'], 'バイセップスカール': ['machine'], 'バーベル カール': ['barbell'], 'EZバー カール': ['barbell'], 'ハンマーカール': ['dumbbell'], 'プリーチャーカール': ['barbell'], 'ケーブル プレスダウン': ['machine'], 'スカルクラッシャー': ['barbell'], 'オーバーヘッド トライセプスエクステンション': ['dumbbell'], 'ダンベル フレンチプレス': ['dumbbell'], 'ケーブル カール': ['machine'], 'コンセントレーション カール': ['dumbbell'], 'ナローグリップ ベンチプレス': ['barbell', 'bench'],
+            'レッグプレス(マシン)': ['machine'], 'ブルガリアン スクワット': ['dumbbell'], 'バーベル スクワット': ['barbell'], 'スミスマシン スクワット': ['smith'], 'ワイド スクワット': ['bodyweight', 'barbell'], 'レッグエクステンション': ['machine'], 'シーテッド レッグカール': ['machine'], 'ライイング レッグカール': ['machine'], 'ハックスクワット': ['machine'], 'ルーマニアン デッドリフト (RDL)': ['barbell'], 'ダンベル ランジ': ['dumbbell'], 'スタンディング カーフレイズ': ['machine'], 'ゴブレット スクワット': ['dumbbell'],
+            'ヒアダクション (インナーサイ)': ['machine'], 'バーベル ヒップスラスト': ['barbell', 'bench'], 'ヒップアブダクション (アウターサイ)': ['machine'], 'グルートドライブ (マシン)': ['machine'], 'ケーブル キックバック': ['machine'],
+            'アブドミナル': ['machine'], 'アブローラー': ['bodyweight'], 'ハンギング レッグレイズ': ['bodyweight'], 'ケーブル クランチ': ['machine'], 'トーソローテーション': ['machine'], 'プランク': ['bodyweight'],
+            '傾斜ウォーキング (インクライン)': ['machine'], 'トレッドミル (ランニング・ジョギング)': ['machine'], 'エアロバイク (アップライト)': ['machine'], 'スピンバイク': ['machine'], 'クロストレーナー (エリプティカル)': ['machine'], 'ステアマスター (階段昇降)': ['machine'], 'ローイングエルゴメーター': ['machine']
+        };
+        const REC_GOALS = [
+            { id: 'balance', label: 'バランス重視' },
+            { id: 'v_taper', label: '逆三角形（背中・肩）' },
+            { id: 'chest', label: '厚い胸板（胸・腕）' },
+            { id: 'health', label: '健康維持・足腰強化' }
+        ];
+        const GOAL_WEIGHTS = {
+            balance: {},
+            v_taper: { '背中': 1.3, '肩': 1.3, '腕': 1.1, '脚': 0.9, 'お尻': 0.9, '有酸素': 0.8 },
+            chest: { '胸': 1.3, '腕': 1.2, '肩': 1.1, '脚': 0.9, 'お尻': 0.9, '有酸素': 0.8 },
+            health: { '脚': 1.3, 'お尻': 1.2, '腹筋': 1.1, '有酸素': 1.1, '胸': 0.9, '肩': 0.9, '腕': 0.9 }
+        };
+        const EQUIP_OPTIONS = [
+            { id: 'bodyweight', label: '自重' }, { id: 'dumbbell', label: 'ダンベル' }, { id: 'barbell', label: 'バーベル' },
+            { id: 'bench', label: 'ベンチ' }, { id: 'smith', label: 'スミスマシン' }, { id: 'machine', label: 'マシン' }
+        ];
+        function getRecPrefs() {
+            const p = { goal: 'balance', equipment: [] };
+            try {
+                const raw = localStorage.getItem('workout_rec_prefs_v1');
+                if (raw) { const j = JSON.parse(raw); if (j && typeof j === 'object') { if (j.goal) p.goal = j.goal; if (Array.isArray(j.equipment)) p.equipment = j.equipment; } }
+            } catch (e) {}
+            return p;
+        }
+        function saveRecPrefs(p) { try { localStorage.setItem('workout_rec_prefs_v1', JSON.stringify(p)); } catch (e) {} }
+        function setRecGoal(g) { const p = getRecPrefs(); p.goal = g; saveRecPrefs(p); renderRecPrefsUI(); renderRecommendation(); }
+        function toggleEquip(id) { const p = getRecPrefs(); const i = p.equipment.indexOf(id); if (i >= 0) p.equipment.splice(i, 1); else p.equipment.push(id); saveRecPrefs(p); renderRecPrefsUI(); renderRecommendation(); }
+        function renderRecPrefsUI() {
+            const gWrap = document.getElementById('recGoalChips');
+            const eWrap = document.getElementById('recEquipChips');
+            if (!gWrap || !eWrap) return;
+            const p = getRecPrefs();
+            gWrap.innerHTML = '';
+            REC_GOALS.forEach(g => {
+                const b = document.createElement('button');
+                b.className = 'pref-chip' + (p.goal === g.id ? ' active' : '');
+                b.textContent = g.label;
+                b.onclick = function() { setRecGoal(g.id); };
+                gWrap.appendChild(b);
+            });
+            eWrap.innerHTML = '';
+            EQUIP_OPTIONS.forEach(o => {
+                const b = document.createElement('button');
+                b.className = 'pref-chip' + (p.equipment.indexOf(o.id) >= 0 ? ' active' : '');
+                b.textContent = o.label;
+                b.onclick = function() { toggleEquip(o.id); };
+                eWrap.appendChild(b);
+            });
+            const wl = document.getElementById('weeklyGoalSettingLabel');
+            if (wl) wl.textContent = '週' + getWeeklyGoal() + '回';
+        }
+        function exercisePassesEquipment(ex) {
+            const prefs = getRecPrefs();
+            if (!prefs.equipment || prefs.equipment.length === 0) return true;
+            const tags = EQUIP_BY_NAME[ex.name];
+            if (!tags) return true;
+            return tags.some(t => prefs.equipment.indexOf(t) >= 0);
+        }
+        function pickExercisesForCategory(cat, stats) {
+            let pool = defaultExercises.filter(ex => ex.category === cat);
+            const filtered = pool.filter(exercisePassesEquipment);
+            if (filtered.length > 0) pool = filtered;
+            const counts = stats.countByEx || {};
+            const lastByEx = stats.lastByEx || {};
+            const picks = [];
+            const used = {};
+            pool.filter(ex => (counts[ex.name] || 0) >= 3)
+                .sort((a, b) => ((b.fav ? 1 : 0) - (a.fav ? 1 : 0)) || ((counts[b.name] || 0) - (counts[a.name] || 0)))
+                .slice(0, 2)
+                .forEach(ex => { picks.push({ ex: ex, tag: '定番' }); used[ex.name] = true; });
+            const rest = pool.filter(ex => !used[ex.name]);
+            if (picks.length < 3 && rest.length > 0) {
+                const variety = rest.slice().sort((a, b) => {
+                    const la = lastByEx[a.name] || '', lb = lastByEx[b.name] || '';
+                    if (la !== lb) return la < lb ? -1 : 1;
+                    return (counts[a.name] || 0) - (counts[b.name] || 0);
+                })[0];
+                picks.push({ ex: variety, tag: (counts[variety.name] || 0) === 0 ? '変化球' : '久々' });
+                used[variety.name] = true;
+            }
+            if (picks.length < 3) {
+                rest.filter(ex => !used[ex.name])
+                    .sort((a, b) => ((b.fav ? 1 : 0) - (a.fav ? 1 : 0)) || ((counts[b.name] || 0) - (counts[a.name] || 0)))
+                    .forEach(ex => { if (picks.length < 3) { picks.push({ ex: ex, tag: (counts[ex.name] || 0) >= 3 ? '定番' : '' }); used[ex.name] = true; } });
+            }
+            return picks.slice(0, 3);
+        }
         function daysBetweenStr(aStr, bStr) {
             const a = new Date(aStr + 'T00:00:00');
             const b = new Date(bStr + 'T00:00:00');
@@ -2944,14 +3082,16 @@
             defaultExercises.forEach(ex => { catByName[ex.name] = ex.category; });
             const lastByCat = {};
             const lastByEx = {};
+            const countByEx = {};
             Object.keys(workoutLogs).forEach(dateStr => {
                 (workoutLogs[dateStr] || []).forEach(s => {
                     const cat = catByName[s.exerciseName];
                     if (cat && (!lastByCat[cat] || dateStr > lastByCat[cat])) lastByCat[cat] = dateStr;
                     if (!lastByEx[s.exerciseName] || dateStr > lastByEx[s.exerciseName]) lastByEx[s.exerciseName] = dateStr;
+                    countByEx[s.exerciseName] = (countByEx[s.exerciseName] || 0) + 1;
                 });
             });
-            return { lastByCat, lastByEx };
+            return { lastByCat, lastByEx, countByEx };
         }
         function suggestExercises(cat, lastByEx, n) {
             return defaultExercises
@@ -2973,6 +3113,8 @@
             const stats = computeCategoryStats();
             const hasAnyLog = Object.keys(workoutLogs).some(d => (workoutLogs[d] || []).length > 0);
             body.innerHTML = '';
+            const headTitleEl = document.getElementById('recommendHeadTitle');
+            if (headTitleEl) headTitleEl.textContent = '💡 今日のおすすめ';
 
             const title = document.createElement('div');
             title.style.cssText = 'font-size:1.05rem; font-weight:bold; margin-bottom:4px;';
@@ -2981,13 +3123,21 @@
             const chips = document.createElement('div');
             chips.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap;';
 
-            function addChips(cat) {
-                suggestExercises(cat, stats.lastByEx, 3).forEach(ex => {
+            function addChips(picks) {
+                (picks || []).forEach(p => {
                     const b = document.createElement('button');
                     b.className = 'timer-btn';
-                    b.style.cssText = 'flex:none; padding:9px 14px;';
-                    b.textContent = ex.name;
-                    b.onclick = function() { pickRecommendedExercise(ex.name, cat); };
+                    b.style.cssText = 'flex:none; padding:9px 14px; display:inline-flex; align-items:center;';
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = p.ex.name;
+                    b.appendChild(nameSpan);
+                    if (p.tag) {
+                        const t = document.createElement('span');
+                        t.className = 'rec-tag';
+                        t.textContent = p.tag;
+                        b.appendChild(t);
+                    }
+                    b.onclick = function() { pickRecommendedExercise(p.ex.name, p.cat); };
                     chips.appendChild(b);
                 });
             }
@@ -3002,7 +3152,7 @@
                 title.textContent = 'まずは胸から始めてみましょう';
                 sub.textContent = '記録がたまると、休ませている部位を自動で提案します。';
                 body.appendChild(title); body.appendChild(sub);
-                addChips('胸');
+                addChips(pickExercisesForCategory('胸', stats).map(p => ({ ex: p.ex, cat: '胸', tag: p.tag })));
                 if (chips.children.length) body.appendChild(chips);
                 card.style.display = ''; applyRecommendationCollapse();
                 return;
@@ -3013,7 +3163,7 @@
                 title.textContent = cat + 'のおすすめ種目';
                 sub.textContent = lastInfo(cat);
                 body.appendChild(title); body.appendChild(sub);
-                addChips(cat);
+                addChips(pickExercisesForCategory(cat, stats).map(p => ({ ex: p.ex, cat: cat, tag: p.tag })));
                 if (chips.children.length) body.appendChild(chips);
                 card.style.display = ''; applyRecommendationCollapse();
                 return;
@@ -3028,13 +3178,27 @@
                 return;
             }
 
-            let best = null, bestDays = -1;
-            REC_CATEGORIES.forEach(cat => {
-                if (stats.lastByCat[cat] === todayStr) return;
-                const last = stats.lastByCat[cat];
-                const days = last ? daysBetweenStr(last, todayStr) : 9999;
-                if (days > bestDays) { bestDays = days; best = cat; }
-            });
+            const prefsNow = getRecPrefs();
+            const weightsNow = GOAL_WEIGHTS[prefsNow.goal] || GOAL_WEIGHTS.balance;
+            const scored = REC_CATEGORIES
+                .filter(cat => stats.lastByCat[cat] !== todayStr)
+                .map(cat => {
+                    const last = stats.lastByCat[cat];
+                    const days = last ? daysBetweenStr(last, todayStr) : 9999;
+                    return { cat: cat, days: days, score: days * (weightsNow[cat] || 1) };
+                })
+                .sort((a, b) => b.score - a.score);
+            const best = scored[0].cat;
+            const bestDays = scored[0].days;
+            let picks = [];
+            for (const s of scored) {
+                if (picks.length >= 3) break;
+                pickExercisesForCategory(s.cat, stats).forEach(p => {
+                    if (picks.length < 3) picks.push({ ex: p.ex, cat: s.cat, tag: p.tag });
+                });
+            }
+            const headTitleAuto = document.getElementById('recommendHeadTitle');
+            if (headTitleAuto) headTitleAuto.textContent = '💡 今日のおすすめ（' + best + '・' + (bestDays >= 9999 ? '未実施' : '中' + bestDays + '日') + '）';
             const accent = document.createElement('span');
             accent.style.color = 'var(--accent)';
             accent.textContent = best;
@@ -3043,7 +3207,7 @@
             title.appendChild(document.createTextNode(' がおすすめ'));
             sub.textContent = lastInfo(best) + '。タップで種目をセットできます。';
             body.appendChild(title); body.appendChild(sub);
-            addChips(best);
+            addChips(picks);
             if (chips.children.length) body.appendChild(chips);
             card.style.display = ''; applyRecommendationCollapse();
         }
@@ -3069,6 +3233,59 @@
             select.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        function getWeeklyGoal() {
+            let n = 3;
+            try { n = parseInt(localStorage.getItem('workout_weekly_goal_v1') || '3', 10); } catch (e) {}
+            if (!(n >= 1 && n <= 7)) n = 3;
+            return n;
+        }
+        function setWeeklyGoal(n) {
+            n = Math.max(1, Math.min(7, n));
+            try { localStorage.setItem('workout_weekly_goal_v1', String(n)); } catch (e) {}
+            renderWeeklyGoal();
+            renderRecPrefsUI();
+        }
+        function renderWeeklyGoal() {
+            const text = document.getElementById('weeklyGoalText');
+            const bar = document.getElementById('weeklyGoalBar');
+            if (!text || !bar) return;
+            const goal = getWeeklyGoal();
+            const todayStr = getRealTodayStr();
+            const d = new Date(todayStr + 'T00:00:00');
+            d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+            let done = 0;
+            for (let i = 0; i < 7; i++) {
+                const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                if ((workoutLogs[key] || []).length > 0) done++;
+                d.setDate(d.getDate() + 1);
+            }
+            if (done >= goal) {
+                text.textContent = '今週の目標クリア！（' + done + ' / ' + goal + ' 回）';
+                text.style.color = 'var(--accent)';
+            } else {
+                text.textContent = done + ' / ' + goal + ' 回';
+                text.style.color = '';
+            }
+            bar.style.width = Math.min(100, Math.round(done / goal * 100)) + '%';
+        }
+        function updateTodayVolumeLine(daySets) {
+            const el = document.getElementById('todayVolumeLine');
+            if (!el) return;
+            const vol = (daySets || []).reduce((sum, s) => sum + (Number(s.weight) || 0) * (Number(s.reps) || 0), 0);
+            if (!daySets || daySets.length === 0) { el.innerHTML = ''; return; }
+            let html = '総重量 <b style="color:var(--text-main);">' + vol.toLocaleString() + ' kg</b>';
+            let prevDate = null;
+            Object.keys(workoutLogs).forEach(ds => {
+                if (ds < currentDayStr && (workoutLogs[ds] || []).length > 0 && (!prevDate || ds > prevDate)) prevDate = ds;
+            });
+            if (prevDate) {
+                const prevVol = (workoutLogs[prevDate] || []).reduce((sum, s) => sum + (Number(s.weight) || 0) * (Number(s.reps) || 0), 0);
+                const diff = vol - prevVol;
+                const color = diff > 0 ? 'var(--accent)' : 'var(--text-sub)';
+                html += '（前回 ' + prevDate.slice(5).replace('-', '/') + ' 比 <span style="color:' + color + '; font-weight:700;">' + (diff > 0 ? '+' : '') + diff.toLocaleString() + ' kg</span>）';
+            }
+            el.innerHTML = html;
+        }
         function renderTodaySets() {
             renderRecommendation();
             const container = document.getElementById('todaySetsList');
@@ -3077,6 +3294,7 @@
 
             const daySets = workoutLogs[currentDayStr] || [];
             document.getElementById('todayTotalSetsBadge').innerText = `全${daySets.length}セット`;
+            updateTodayVolumeLine(daySets);
 
             if (daySets.length === 0) {
                 container.innerHTML = `<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:10px;">まだ記録がありません</div>`;
@@ -3211,6 +3429,7 @@
         }
 
         function renderCalendar() {
+            renderWeeklyGoal();
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
             ['日','月','火','水','木','金','土'].forEach(d => {
