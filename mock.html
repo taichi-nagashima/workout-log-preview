@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>筋トレ記録 デザインモック 3案</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #232529; color: #e8eaed;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+    padding: 28px 12px 60px;
+  }
+  .page-head { max-width: 430px; margin: 0 auto 8px; text-align: center; }
+  .page-head h1 { font-size: 1.25rem; margin-bottom: 6px; }
+  .page-head p { font-size: 0.85rem; color: #a7adb6; line-height: 1.6; }
+  .mock-block { max-width: 430px; margin: 40px auto 0; }
+  .mock-label { text-align: center; margin-bottom: 14px; padding: 0 8px; }
+  .mock-label .no { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; background: #e8eaed; color: #232529; border-radius: 999px; padding: 3px 12px; margin-bottom: 8px; }
+  .mock-label h2 { font-size: 1.15rem; margin-bottom: 5px; }
+  .mock-label p { font-size: 0.83rem; color: #a7adb6; line-height: 1.65; }
+  .phone {
+    width: 375px; max-width: 100%; margin: 0 auto;
+    border-radius: 42px; padding: 10px;
+    background: #000; border: 1px solid #3a3d42;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  }
+  .screen {
+    border-radius: 33px; overflow: hidden; position: relative;
+    height: 720px; display: flex; flex-direction: column;
+  }
+  .scr-body { flex: 1; overflow: hidden; padding: 14px 14px 8px; }
+  .row-flex { display: flex; align-items: center; }
+</style>
+<style>
+  /* ============ 案1 Tactile Hardware ============ */
+  .a1 .screen { background: #0A0A0B; color: #F4F4F0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+  .a1 .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .a1 .hdr .ttl { font-size: 1.02rem; font-weight: 700; letter-spacing: 0.02em; }
+  .a1 .hdr .ttl span { color: #FF5722; font-size: 0.8rem; }
+  .a1 .date-badge { background: #222226; color: #c9c9c4; font-size: 0.72rem; padding: 5px 10px; border-radius: 8px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); font-family: ui-monospace, Menlo, monospace; }
+  .a1 .timerbar { background: #161618; border: 1px solid #26262A; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); border-radius: 20px; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .a1 .timerbar .t { font-family: ui-monospace, Menlo, monospace; font-size: 1.25rem; font-weight: 700; color: #FF5722; }
+  .a1 .timerbar .lbl { font-size: 0.72rem; color: #78787E; }
+  .a1 .timerbar .stop { background: #222226; color: #F4F4F0; font-size: 0.72rem; border: none; padding: 6px 12px; border-radius: 8px; border-bottom: 2px solid #000; }
+  .a1 .pills { display: flex; gap: 7px; margin-bottom: 12px; }
+  .a1 .pill { font-size: 0.78rem; padding: 7px 13px; border-radius: 8px; background: #161618; color: #a9a9a3; border: 1px solid #26262A; }
+  .a1 .pill.on { background: #FF5722; color: #0A0A0B; font-weight: 700; border-color: #FF5722; }
+  .a1 .card { background: #161618; border: 1px solid #26262A; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+  .a1 .exname { font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .a1 .exname .chev { color: #78787E; font-size: 0.9rem; }
+  .a1 .prev { font-size: 0.75rem; color: #78787E; margin-top: 5px; font-family: ui-monospace, Menlo, monospace; }
+  .a1 .prev b { color: #E5B84B; font-weight: 700; }
+  .a1 .setlbl { text-align: center; font-size: 0.8rem; color: #a9a9a3; letter-spacing: 0.22em; margin: 14px 0 10px; font-weight: 600; }
+  .a1 .win { background: #0E0E10; border-radius: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.65), inset 0 -1px 0 rgba(255,255,255,0.04); padding: 12px 10px; margin-bottom: 10px; }
+  .a1 .win .cap { font-size: 0.62rem; letter-spacing: 0.28em; color: #78787E; text-align: center; margin-bottom: 2px; font-weight: 600; }
+  .a1 .win .valrow { display: flex; align-items: center; justify-content: space-between; }
+  .a1 .key { width: 52px; height: 52px; border-radius: 12px; background: #222226; border: none; border-bottom: 3px solid #000; color: #F4F4F0; font-size: 1.35rem; font-weight: 700; box-shadow: inset 0 1px 0 rgba(255,255,255,0.09); }
+  .a1 .bignum { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 3.4rem; font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .a1 .bignum .unit { font-size: 0.85rem; color: #78787E; vertical-align: super; letter-spacing: 0; margin-left: 2px; }
+  .a1 .chips { display: flex; gap: 7px; justify-content: center; margin: 4px 0 14px; }
+  .a1 .chip { font-size: 0.75rem; padding: 6px 13px; border-radius: 8px; background: #161618; border: 1px solid #26262A; color: #a9a9a3; font-family: ui-monospace, Menlo, monospace; }
+  .a1 .chip.on { color: #FF5722; border-color: #FF5722; }
+  .a1 .recbtn { width: 100%; background: #FF5722; color: #0A0A0B; border: none; border-radius: 12px; padding: 16px 10px; font-size: 1rem; font-weight: 800; box-shadow: 0 4px 0 #9E300E; letter-spacing: 0.02em; }
+  .a1 .listttl { font-size: 0.75rem; color: #78787E; letter-spacing: 0.18em; margin-bottom: 8px; font-weight: 600; }
+  .a1 .srow { display: flex; justify-content: space-between; align-items: center; background: #161618; border: 1px solid #26262A; border-radius: 12px; padding: 10px 13px; margin-bottom: 7px; font-family: ui-monospace, Menlo, monospace; }
+  .a1 .srow .sn { color: #78787E; font-size: 0.78rem; }
+  .a1 .srow .sv { font-size: 1rem; font-weight: 700; }
+  .a1 .srow.pr { background: #2A2415; border-color: #E5B84B; color: #E5B84B; }
+  .a1 .srow.pr .sn { color: #E5B84B; }
+  .a1 .tabbar { margin: 4px 16px 16px; background: #161618; border: 1px solid #000; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); border-radius: 24px; display: flex; padding: 8px; }
+  .a1 .tab { flex: 1; text-align: center; font-size: 0.68rem; color: #78787E; padding: 7px 0 5px; border-radius: 12px; }
+  .a1 .tab .ic { font-size: 1.05rem; display: block; margin-bottom: 2px; }
+  .a1 .tab.on { background: #2A2A30; color: #F4F4F0; }
+</style>
+<style>
+  /* ============ 案2 Kinetic Club ============ */
+  .a2 .screen { background: #000000; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+  .a2 .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .a2 .hdr .ttl { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; }
+  .a2 .hdr .ttl span { color: #D2FF28; }
+  .a2 .date-badge { background: #1F1F23; color: #fff; font-size: 0.72rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; }
+  .a2 .timerbar { border: 2px solid #D2FF28; border-radius: 999px; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .a2 .timerbar .t { font-size: 1.3rem; font-weight: 900; color: #D2FF28; font-variant-numeric: tabular-nums; }
+  .a2 .timerbar .lbl { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; color: #8E8E93; }
+  .a2 .timerbar .stop { background: #D2FF28; color: #000; font-size: 0.72rem; font-weight: 800; border: none; padding: 6px 14px; border-radius: 999px; }
+  .a2 .pills { display: flex; gap: 7px; margin-bottom: 14px; }
+  .a2 .pill { font-size: 0.78rem; font-weight: 700; padding: 8px 14px; border-radius: 999px; background: #1F1F23; color: #c7c7cc; }
+  .a2 .pill.on { background: #FFFFFF; color: #000; }
+  .a2 .card { background: #141416; border-radius: 28px; padding: 20px 18px; margin-bottom: 12px; }
+  .a2 .exname { font-size: 1.12rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+  .a2 .exname .chev { color: #8E8E93; }
+  .a2 .prev { font-size: 0.75rem; color: #8E8E93; margin-top: 5px; font-weight: 600; }
+  .a2 .prev b { color: #FFB800; }
+  .a2 .setlbl { text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; color: #8E8E93; margin: 16px 0 4px; }
+  .a2 .cap { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; color: #8E8E93; text-align: center; margin-top: 10px; }
+  .a2 .valrow { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+  .a2 .key { width: 56px; height: 56px; border-radius: 50%; background: #26262B; border: none; color: #fff; font-size: 1.5rem; font-weight: 800; }
+  .a2 .bignum { font-size: 4.3rem; font-weight: 900; letter-spacing: -0.05em; line-height: 0.95; font-variant-numeric: tabular-nums; }
+  .a2 .bignum .unit { font-size: 1rem; font-weight: 800; color: #8E8E93; margin-left: 3px; letter-spacing: 0; }
+  .a2 .chips { display: flex; gap: 7px; justify-content: center; margin: 14px 0 16px; }
+  .a2 .chip { font-size: 0.75rem; font-weight: 700; padding: 7px 14px; border-radius: 999px; background: #1F1F23; color: #c7c7cc; }
+  .a2 .chip.on { background: #D2FF28; color: #000; }
+  .a2 .recbtn { width: 100%; background: #D2FF28; color: #000; border: none; border-radius: 999px; height: 62px; font-size: 1.02rem; font-weight: 800; letter-spacing: 0.01em; }
+  .a2 .listttl { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; color: #8E8E93; margin-bottom: 8px; }
+  .a2 .srow { display: flex; justify-content: space-between; align-items: center; background: #141416; border-radius: 14px; padding: 11px 14px; margin-bottom: 7px; }
+  .a2 .srow .sn { color: #8E8E93; font-size: 0.78rem; font-weight: 700; }
+  .a2 .srow .sv { font-size: 1.02rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .a2 .srow.pr { background: #FFB800; color: #000; }
+  .a2 .srow.pr .sn { color: #000; }
+  .a2 .tabbar { background: rgba(10,10,10,0.92); display: flex; padding: 10px 8px 18px; }
+  .a2 .tab { flex: 1; text-align: center; font-size: 0.68rem; font-weight: 700; color: #636366; position: relative; }
+  .a2 .tab .ic { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+  .a2 .tab.on { color: #D2FF28; }
+  .a2 .tab.on::after { content: ""; display: block; width: 4px; height: 4px; border-radius: 50%; background: #D2FF28; margin: 4px auto 0; }
+</style>
+<style>
+  /* ============ 案3 Raw Editorial Log ============ */
+  .a3 .screen { background: #EAE8E1; color: #181816; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
+  .a3 .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .a3 .hdr .ttl { font-size: 1.02rem; font-weight: 700; }
+  .a3 .hdr .ttl span { color: #D9381E; font-size: 0.8rem; }
+  .a3 .date-badge { background: #F7F6F2; border: 1px solid #D8D5CD; color: #181816; font-size: 0.72rem; padding: 5px 10px; border-radius: 8px; }
+  .a3 .timerbar { background: #181816; color: #F7F6F2; border-radius: 999px; padding: 9px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(24,24,22,0.12); }
+  .a3 .timerbar .t { font-size: 1.25rem; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .a3 .timerbar .lbl { font-size: 0.72rem; color: #b9b6ad; }
+  .a3 .timerbar .stop { background: #F7F6F2; color: #181816; font-size: 0.72rem; font-weight: 700; border: none; padding: 6px 12px; border-radius: 999px; }
+  .a3 .pills { display: flex; gap: 7px; margin-bottom: 12px; }
+  .a3 .pill { font-size: 0.78rem; padding: 7px 13px; border-radius: 12px; background: transparent; color: #78756E; border: 1px solid #D8D5CD; }
+  .a3 .pill.on { background: #181816; color: #F7F6F2; border-color: #181816; font-weight: 700; }
+  .a3 .card { background: #F7F6F2; border: 1px solid #D8D5CD; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .a3 .exname { font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .a3 .exname .chev { color: #78756E; font-size: 0.9rem; }
+  .a3 .prev { font-size: 0.75rem; color: #78756E; margin-top: 5px; }
+  .a3 .prev b { color: #9A6515; }
+  .a3 .setlbl { text-align: center; font-size: 0.8rem; color: #78756E; letter-spacing: 0.22em; margin: 14px 0 6px; }
+  .a3 .cap { font-size: 0.64rem; letter-spacing: 0.26em; color: #78756E; text-align: center; margin-top: 12px; }
+  .a3 .valrow { display: flex; align-items: center; justify-content: space-between; }
+  .a3 .key { width: 48px; height: 48px; border-radius: 12px; background: transparent; border: 1.5px solid #181816; color: #181816; font-size: 1.3rem; font-weight: 400; }
+  .a3 .bignum { font-size: 4.1rem; font-weight: 300; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .a3 .bignum .unit { font-size: 0.9rem; font-weight: 400; color: #78756E; margin-left: 3px; }
+  .a3 .chips { display: flex; gap: 7px; justify-content: center; margin: 14px 0; }
+  .a3 .chip { font-size: 0.75rem; padding: 6px 13px; border-radius: 12px; background: transparent; border: 1px solid #D8D5CD; color: #78756E; }
+  .a3 .chip.on { border-color: #181816; color: #181816; font-weight: 700; }
+  .a3 .recbtn { width: 100%; background: #D9381E; color: #fff; border: none; border-radius: 12px; padding: 16px 10px; font-size: 1rem; font-weight: 700; }
+  .a3 .listttl { font-size: 0.75rem; color: #78756E; letter-spacing: 0.16em; margin-bottom: 4px; }
+  .a3 .srow { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; border-bottom: 1px dashed #D8D5CD; }
+  .a3 .srow .sn { color: #78756E; font-size: 0.78rem; }
+  .a3 .srow .sv { font-size: 1.02rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .a3 .srow.pr { background: #FDF6E7; border: 1px solid #C88A2B; border-radius: 8px; padding: 10px 10px; color: #9A6515; margin-top: 6px; }
+  .a3 .srow.pr .sn { color: #9A6515; }
+  .a3 .tabbar { background: #F7F6F2; border-top: 1px solid #D8D5CD; display: flex; padding: 10px 8px 18px; }
+  .a3 .tab { flex: 1; text-align: center; font-size: 0.68rem; color: #9E9B93; position: relative; }
+  .a3 .tab .ic { font-size: 1.05rem; display: block; margin-bottom: 2px; }
+  .a3 .tab.on { color: #D9381E; font-weight: 700; }
+  .a3 .tab.on::before { content: ""; position: absolute; top: -11px; left: 18%; right: 18%; height: 2px; background: #D9381E; }
+</style>
+</head>
+<body>
+<div class="page-head">
+  <h1>筋トレ記録 デザインモック</h1>
+  <p>記録画面のみの簡易モックです（ボタンは動きません）。<br>今日の実績（ベンチプレス 65kg PR）で組んであります。</p>
+</div>
+
+<!-- ================= 案1 ================= -->
+<div class="mock-block a1">
+  <div class="mock-label">
+    <span class="no">案 1</span>
+    <h2>Tactile Hardware</h2>
+    <p>計器・ハードウェア風。マットな黒＋セーフティオレンジ、数字は等幅で「液晶窓」に凹ませ、記録ボタンは押し込む物理キー風。PRは真鍮色。</p>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="scr-body">
+      <div class="hdr"><div class="ttl">🏋️ 筋トレ記録 <span>Pro</span></div><div class="date-badge">11/18 (水)</div></div>
+      <div class="timerbar"><div><span class="lbl">⏱ 休憩中 </span><span class="t">1:24</span></div><button class="stop">停止</button></div>
+      <div class="pills"><span class="pill on">全て</span><span class="pill">胸</span><span class="pill">背中</span><span class="pill">肩</span><span class="pill">腕</span></div>
+      <div class="card">
+        <div class="exname">ベンチプレス <span class="chev">▾</span></div>
+        <div class="prev">前回: 60kg × 9回 (PR: <b>65kg</b>)</div>
+        <div class="setlbl">第 3 セット</div>
+        <div class="win">
+          <div class="cap">WEIGHT</div>
+          <div class="valrow"><button class="key">−</button><div class="bignum">60<span class="unit">kg</span></div><button class="key">＋</button></div>
+        </div>
+        <div class="win">
+          <div class="cap">REPS</div>
+          <div class="valrow"><button class="key">−</button><div class="bignum">8<span class="unit">reps</span></div><button class="key">＋</button></div>
+        </div>
+        <div class="chips"><span class="chip">60s</span><span class="chip on">90s</span><span class="chip">120s</span><span class="chip">180s</span></div>
+        <button class="recbtn">第3セットを記録 ＆ タイマー開始</button>
+      </div>
+      <div class="listttl">本日の記録済みセット</div>
+      <div class="srow pr"><span class="sn">🏆 第1セット</span><span class="sv">65kg × 4</span></div>
+      <div class="srow"><span class="sn">第2セット</span><span class="sv">60kg × 9</span></div>
+    </div>
+    <div class="tabbar">
+      <div class="tab on"><span class="ic">🏋️</span>記録</div>
+      <div class="tab"><span class="ic">📅</span>カレンダー</div>
+      <div class="tab"><span class="ic">📋</span>種目</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ================= 案2 ================= -->
+<div class="mock-block a2">
+  <div class="mock-label">
+    <span class="no">案 2</span>
+    <h2>Kinetic Club</h2>
+    <p>スポーツブランド風。真っ黒＋ボルトライム、枠線と影を全部捨てて72px級の極太数字と面だけで構成。PRはゴールドに色反転。</p>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="scr-body">
+      <div class="hdr"><div class="ttl">🏋️ 筋トレ記録 <span>Pro</span></div><div class="date-badge">11/18 (水)</div></div>
+      <div class="timerbar"><div><span class="lbl">REST </span><span class="t">1:24</span></div><button class="stop">STOP</button></div>
+      <div class="pills"><span class="pill on">全て</span><span class="pill">胸</span><span class="pill">背中</span><span class="pill">肩</span><span class="pill">腕</span></div>
+      <div class="card">
+        <div class="exname">ベンチプレス <span class="chev">▾</span></div>
+        <div class="prev">前回: 60kg × 9回 (PR: <b>65kg</b>)</div>
+        <div class="setlbl">SET 3</div>
+        <div class="cap">WEIGHT</div>
+        <div class="valrow"><button class="key">−</button><div class="bignum">60<span class="unit">kg</span></div><button class="key">＋</button></div>
+        <div class="cap">REPS</div>
+        <div class="valrow"><button class="key">−</button><div class="bignum">8<span class="unit">reps</span></div><button class="key">＋</button></div>
+        <div class="chips"><span class="chip">60s</span><span class="chip on">90s</span><span class="chip">120s</span><span class="chip">180s</span></div>
+        <button class="recbtn">第3セットを記録 ＆ タイマー開始</button>
+      </div>
+      <div class="listttl">TODAY'S SETS</div>
+      <div class="srow pr"><span class="sn">🏆 第1セット</span><span class="sv">65kg × 4</span></div>
+      <div class="srow"><span class="sn">第2セット</span><span class="sv">60kg × 9</span></div>
+    </div>
+    <div class="tabbar">
+      <div class="tab on"><span class="ic">🏋️</span>記録</div>
+      <div class="tab"><span class="ic">📅</span>カレンダー</div>
+      <div class="tab"><span class="ic">📋</span>種目</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ================= 案3 ================= -->
+<div class="mock-block a3">
+  <div class="mock-label">
+    <span class="no">案 3</span>
+    <h2>Raw Editorial Log</h2>
+    <p>紙のトレーニング日誌風（唯一のライトテーマ）。紙色＋インク黒＋朱赤、大きな数字はあえて細字、区切りは罫線と破線。PRは箔押しスタンプ風。</p>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="scr-body">
+      <div class="hdr"><div class="ttl">🏋️ 筋トレ記録 <span>Pro</span></div><div class="date-badge">11/18 (水)</div></div>
+      <div class="timerbar"><div><span class="lbl">⏱ 休憩中 </span><span class="t">1:24</span></div><button class="stop">停止</button></div>
+      <div class="pills"><span class="pill on">全て</span><span class="pill">胸</span><span class="pill">背中</span><span class="pill">肩</span><span class="pill">腕</span></div>
+      <div class="card">
+        <div class="exname">ベンチプレス <span class="chev">▾</span></div>
+        <div class="prev">前回: 60kg × 9回 (PR: <b>65kg</b>)</div>
+        <div class="setlbl">第 3 セット</div>
+        <div class="cap">WEIGHT</div>
+        <div class="valrow"><button class="key">−</button><div class="bignum">60<span class="unit">kg</span></div><button class="key">＋</button></div>
+        <div class="cap">REPS</div>
+        <div class="valrow"><button class="key">−</button><div class="bignum">8<span class="unit">reps</span></div><button class="key">＋</button></div>
+        <div class="chips"><span class="chip">60s</span><span class="chip on">90s</span><span class="chip">120s</span><span class="chip">180s</span></div>
+        <button class="recbtn">第3セットを記録 ＆ タイマー開始</button>
+      </div>
+      <div class="listttl">本日の記録済みセット</div>
+      <div class="srow pr"><span class="sn">🏆 第1セット</span><span class="sv">65kg × 4</span></div>
+      <div class="srow"><span class="sn">第2セット</span><span class="sv">60kg × 9</span></div>
+    </div>
+    <div class="tabbar">
+      <div class="tab on"><span class="ic">🏋️</span>記録</div>
+      <div class="tab"><span class="ic">📅</span>カレンダー</div>
+      <div class="tab"><span class="ic">📋</span>種目</div>
+    </div>
+  </div></div>
+</div>
+
+</body>
+</html>
