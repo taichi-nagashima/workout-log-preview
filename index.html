@@ -1132,6 +1132,15 @@
             *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
         }
     </style>
+    <style id="loop-r4-css">
+        /* 改善ループR4: タップ領域・桁揃え・ズーム防止・タグの線種区別 */
+        .fav-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+        .exercise-meta { font-variant-numeric: tabular-nums; }
+        .search-input { font-size: max(16px, 0.95rem); }
+        .rec-tag { border: 1px solid transparent; }
+        .rec-tag-main { border-color: var(--accent); color: var(--text-main); font-weight: 700; }
+        .rec-tag-var { border-style: dashed; border-color: var(--text-sub); background: transparent; }
+    </style>
 </head>
 <body>
 
@@ -3141,13 +3150,13 @@
                 (picks || []).forEach(p => {
                     const b = document.createElement('button');
                     b.className = 'timer-btn';
-                    b.style.cssText = 'flex:none; padding:9px 14px; display:inline-flex; align-items:center;';
+                    b.style.cssText = 'flex:none; padding:9px 14px; min-height:44px; display:inline-flex; align-items:center;';
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = p.ex.name;
                     b.appendChild(nameSpan);
                     if (p.tag) {
                         const t = document.createElement('span');
-                        t.className = 'rec-tag';
+                        t.className = 'rec-tag' + (p.tag === '定番' ? ' rec-tag-main' : ' rec-tag-var');
                         t.textContent = p.tag;
                         b.appendChild(t);
                     }
@@ -3233,7 +3242,7 @@
             const btn = document.getElementById('recCollapseBtn');
             const collapsed = isRecommendationCollapsed();
             if (body) body.style.display = collapsed ? 'none' : '';
-            if (btn) btn.textContent = collapsed ? '▾ 開く' : '▴ 閉じる';
+            if (btn) { btn.textContent = collapsed ? '▾ 開く' : '▴ 閉じる'; btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true'); }
         }
         function toggleRecommendationCollapse() {
             try { localStorage.setItem('workout_rec_collapsed_v1', isRecommendationCollapsed() ? '0' : '1'); } catch (e) {}
