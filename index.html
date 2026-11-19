@@ -826,14 +826,14 @@
         /* ===== テーマ上書き（kinetic / tactile / editorial） ===== */
         html[data-theme="tactile"] {
             --bg-color: #0a0a0b; --card-bg: #161618; --card-hover: #222226;
-            --text-main: #f4f4f0; --text-sub: #78787e;
+            --text-main: #f4f4f0; --text-sub: #9d9d97;
             --accent: #ff5722; --accent-hover: #e64a19; --border: #26262a;
             --danger: #ff5252; --success: #4caf50; --gold: #e5b84b;
         }
         html[data-theme="editorial"] {
             --bg-color: #eae8e1; --card-bg: #f7f6f2; --card-hover: #efede6;
-            --text-main: #181816; --text-sub: #78756e;
-            --accent: #d9381e; --accent-hover: #b92c14; --border: #d8d5cd;
+            --text-main: #181816; --text-sub: #6b675e;
+            --accent: #c23b22; --accent-hover: #9e2e1b; --border: #d8d5cd;
             --danger: #c62828; --success: #2e7d32; --gold: #c88a2b;
         }
         /* 設定モーダルのテーマ選択ボタン（全テーマ共通） */
@@ -1012,7 +1012,7 @@
         html[data-theme="senior"] {
             --bg-color: #fffef7; --card-bg: #ffffff; --card-hover: #f3f0e2;
             --text-main: #141414; --text-sub: #45453e;
-            --accent: #1d4ed8; --accent-hover: #1e40af; --border: #c6c0aa;
+            --accent: #1d4ed8; --accent-hover: #1e40af; --border: #8f8a76;
             --danger: #b91c1c; --success: #15803d; --gold: #b45309;
             font-size: 20px;
         }
@@ -1121,6 +1121,16 @@
         .rb-chunk { white-space: nowrap; }
         .floating-timer-bar .ft-btn { min-height: 40px; padding: 8px 14px; font-size: 0.9rem; }
         .floating-timer-bar .ft-btn.stop { min-width: 78px; min-height: 46px; padding: 10px 20px; font-size: 1rem; }
+    </style>
+    <style id="loop-r1-css">
+        /* 改善ループR1: 数字の桁揺れ防止／ピッカーのスクロール分離／フォーカスとモーション配慮 */
+        .input-display, .stat-value, #floatingTimeLeft, .ft-left, #todayVolumeLine { font-variant-numeric: tabular-nums; }
+        #exercisePickerList { overscroll-behavior: contain; }
+        #exercisePickerModal .modal-content { max-height: 88dvh; }
+        button:focus-visible, .picker-display:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body>
@@ -2910,6 +2920,9 @@
         function recordSet(skipTimer = false) {
             const exName = document.getElementById('exerciseSelect').value;
             if (!exName) return;
+            const __recNow = Date.now();
+            if (window.__lastRecordAt && __recNow - window.__lastRecordAt < 700) return; // 二度押し・連打による重複記録を防止
+            window.__lastRecordAt = __recNow;
             if (!workoutLogs[currentDayStr]) workoutLogs[currentDayStr] = [];
 
             let historicalMaxWeight = 0;
