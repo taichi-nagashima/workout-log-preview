@@ -1142,14 +1142,44 @@
         .rec-tag-var { border-style: dashed; border-color: var(--text-sub); background: transparent; }
     </style>
     <style id="howto-css">
-        /* 使い方モーダル: テーマ変数で描画し、選択中のデザインに連動する */
-        .howto-steps { display: flex; flex-direction: column; gap: 12px; }
-        .howto-step { display: flex; gap: 12px; align-items: flex-start; background: var(--card-hover); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-        .howto-num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; }
-        .howto-title { font-weight: 700; margin-bottom: 4px; }
-        .howto-body p { margin: 0; font-size: 0.88rem; line-height: 1.65; color: var(--text-sub); }
+        /* 使い方モーダル（ビジュアル版）: テーマ変数で描画し、選択中のデザインに連動する */
+        .howto-steps { display: flex; flex-direction: column; gap: 20px; }
+        .howto-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .howto-num { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; }
         html[data-theme="kinetic"] .howto-num { color: #000000; }
         html[data-theme="tactile"] .howto-num { color: #0a0a0b; }
+        .howto-title { font-weight: 700; font-size: 1.02rem; }
+        .howto-cap { margin: 8px 0 0; font-size: 0.88rem; line-height: 1.65; color: var(--text-sub); }
+        /* ミニ画面（実際の画面の再現） */
+        .mock-screen { background: var(--bg-color); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+        .mock-label { font-size: 0.7rem; font-weight: 700; color: var(--text-sub); letter-spacing: 0.04em; }
+        .mock-rowflex { display: flex; gap: 6px; }
+        .mock-chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); font-size: 0.78rem; white-space: nowrap; }
+        .mock-chip.on { background: var(--accent); border-color: var(--accent); color: #ffffff; font-weight: 700; }
+        html[data-theme="kinetic"] .mock-chip.on { color: #000000; }
+        html[data-theme="tactile"] .mock-chip.on { color: #0a0a0b; }
+        .mock-select { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+        .mock-display { background: var(--card-bg); border-radius: 12px; padding: 8px; text-align: center; font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+        .mock-display .unit { font-size: 0.85rem; color: var(--text-sub); font-weight: 400; }
+        .mock-btn { flex: 1; background: var(--card-hover); border: 1px solid var(--border); border-radius: 10px; padding: 8px 2px; font-size: 0.78rem; text-align: center; color: var(--text-main); }
+        .mock-record { background: var(--accent); color: #ffffff; border-radius: 999px; padding: 13px; text-align: center; font-weight: 800; font-size: 0.95rem; }
+        html[data-theme="kinetic"] .mock-record { color: #000000; }
+        html[data-theme="tactile"] .mock-record { color: #0a0a0b; }
+        .mock-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .mock-cal div { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; border-radius: 7px; background: var(--card-bg); color: var(--text-main); position: relative; }
+        .mock-cal .done::after { content: ""; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+        .mock-cal .today { border: 2px solid var(--gold); font-weight: 800; }
+        .mock-cal .sel { background: var(--accent); color: #ffffff; font-weight: 800; }
+        html[data-theme="kinetic"] .mock-cal .sel { color: #000000; }
+        html[data-theme="tactile"] .mock-cal .sel { color: #0a0a0b; }
+        .mock-listrow { display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; font-size: 0.84rem; }
+        .mock-listrow .star { color: var(--gold); font-size: 1rem; }
+        .mock-listrow .grow { flex: 1; }
+        .mock-theme { display: flex; align-items: center; gap: 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-size: 0.85rem; }
+        .mock-theme .sw { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+        /* 赤丸マーカー */
+        .redmark { position: relative; }
+        .redmark::after { content: ""; position: absolute; inset: -5px -6px; border: 3px solid #E60012; border-radius: 50%; transform: rotate(-3deg); pointer-events: none; }
     </style>
 </head>
 <body>
@@ -1475,13 +1505,65 @@
                 <button class="close-modal" onclick="closeHowtoModal()">✕</button>
             </div>
             <div class="howto-steps">
-                <div class="howto-step"><div class="howto-num">1</div><div class="howto-body"><div class="howto-title">種目を選ぶ</div><p>「記録」タブで、部位のボタンと種目をタップします。「💡 今日のおすすめ」のチップから選ぶこともできます。</p></div></div>
-                <div class="howto-step"><div class="howto-num">2</div><div class="howto-body"><div class="howto-title">重量と回数を入れる</div><p>数字の部分を左右にスワイプするか、＋／−ボタンで調整します。「+0.5」で少しだけ増やすこともできます。前回の記録が自動で入るので、変えたいところだけ直せばOKです。</p></div></div>
-                <div class="howto-step"><div class="howto-num">3</div><div class="howto-body"><div class="howto-title">記録する</div><p>「記録する」ボタンを押すとセットが保存されます。次のセットも同じように続けて記録します。</p></div></div>
-                <div class="howto-step"><div class="howto-num">4</div><div class="howto-body"><div class="howto-title">タイマーで休憩</div><p>時間を選んでスタートすると、カウントダウンが始まります。終わると音でお知らせします。</p></div></div>
-                <div class="howto-step"><div class="howto-num">5</div><div class="howto-body"><div class="howto-title">カレンダーでふり返る</div><p>「カレンダー」タブで、トレーニングした日に印がつきます。日付をタップすると、その日の記録が見られます。今週の目標の進み具合もここで確認できます。</p></div></div>
-                <div class="howto-step"><div class="howto-num">6</div><div class="howto-body"><div class="howto-title">種目を増やす・お気に入り</div><p>「種目」タブで新しい種目を追加できます。よく使う種目は★を押してお気に入りにすると、選びやすくなります。</p></div></div>
-                <div class="howto-step"><div class="howto-num">7</div><div class="howto-body"><div class="howto-title">デザインを変える</div><p>この設定画面の「テーマ」から、4種類のデザインを選べます。文字を大きくしたいときは「シンプル」がおすすめです。この使い方の画面も、選んだデザインに合わせて変わります。</p></div></div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">1</div><div class="howto-title">種目を選ぶ</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-label">部位</div>
+                        <div class="mock-rowflex"><span class="mock-chip on">胸</span><span class="mock-chip">背中</span><span class="mock-chip">肩</span><span class="mock-chip">腕</span><span class="mock-chip">脚</span></div>
+                        <div class="mock-label">種目</div>
+                        <div class="redmark"><div class="mock-select"><span>バーベル ベンチプレス</span><span>▾</span></div></div></div>
+                    <p class="howto-cap">「記録」タブで、部位と種目をタップします。「💡 今日のおすすめ」のチップから選ぶこともできます。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">2</div><div class="howto-title">重量と回数を入れる</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-label">重量 (WEIGHT)</div>
+                        <div class="redmark"><div class="mock-display">60<span class="unit">kg</span></div></div>
+                        <div class="mock-rowflex"><span class="mock-btn">-10</span><span class="mock-btn">-5</span><span class="mock-btn">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn">+10</span></div>
+                        <div class="mock-label">回数 (REPS)</div>
+                        <div class="mock-display">10<span class="unit">reps</span></div></div>
+                    <p class="howto-cap">赤丸の数字の部分を左右にスワイプするか、下のボタンで調整します。前回の記録が自動で入るので、変えたいところだけ直せばOKです。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">3</div><div class="howto-title">記録する</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-label">第 1 セット</div>
+                        <div class="redmark"><div class="mock-record">記録する</div></div>
+                        <div class="mock-listrow"><span>1セット目</span><span class="grow"></span><span>60kg × 10回</span></div></div>
+                    <p class="howto-cap">「記録する」を押すとセットが保存されます。次のセットも同じように続けて記録します。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">4</div><div class="howto-title">タイマーで休憩</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-label">タイマー（休憩）</div>
+                        <div class="mock-rowflex"><span class="mock-chip">60秒</span><span class="mock-chip on">90秒</span><span class="mock-chip">120秒</span><span class="mock-chip">180秒</span></div>
+                        <div class="redmark"><div class="mock-record">タイマー開始</div></div></div>
+                    <p class="howto-cap">時間を選んでスタート。終わると音でお知らせします。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">5</div><div class="howto-title">カレンダーでふり返る</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-label">2026年 11月</div>
+                        <div class="mock-cal"><div class="">1</div><div class="done">2</div><div class="">3</div><div class="">4</div><div class="done">5</div><div class="">6</div><div class="">7</div><div class="">8</div><div class="sel">9</div><div class="">10</div><div class="">11</div><div class="today done">12</div><div class="">13</div><div class="">14</div></div>
+                        <div class="redmark"><div class="mock-listrow"><span>11月9日</span><span class="grow"></span><span>ベンチプレス 60kg × 10回</span></div></div></div>
+                    <p class="howto-cap">やった日には印（ドット）がつきます。日付をタップすると、その日の記録が見られます。金色の枠が今日です。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">6</div><div class="howto-title">種目を増やす・お気に入り</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-listrow"><span class="grow">バーベル ベンチプレス</span><span class="redmark"><span class="star">★</span></span></div>
+                        <div class="mock-listrow"><span class="grow">ダンベル フライ</span><span class="star">★</span></div>
+                        <div class="redmark"><div class="mock-select"><span>＋ 新しい種目を追加</span><span></span></div></div></div>
+                    <p class="howto-cap">「種目」タブで種目の追加ができます。★を押すとお気に入りになり、選びやすくなります。</p>
+                </div>
+                <div class="howto-step">
+                    <div class="howto-head"><div class="howto-num">7</div><div class="howto-title">デザインを変える</div></div>
+                    <div class="mock-screen">
+                        <div class="mock-theme"><span class="sw" style="background:#CCFF00;"></span><span>Kinetic Club</span></div>
+                        <div class="mock-theme"><span class="sw" style="background:#FF5722;"></span><span>Tactile Hardware</span></div>
+                        <div class="redmark"><div class="mock-theme"><span class="sw" style="background:#1D4ED8;"></span><span>シンプル（文字が大きい）</span></div></div></div>
+                    <p class="howto-cap">設定の「テーマ」から4種類のデザインを選べます。文字を大きくしたいときは「シンプル」がおすすめです。この使い方の画面も、選んだデザインに合わせて変わります。</p>
+                </div>
             </div>
             <button class="record-skip-btn" style="width:100%; padding:13px; margin-top:16px;" onclick="closeHowtoModal()">閉じる</button>
         </div>
