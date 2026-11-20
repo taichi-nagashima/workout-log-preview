@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="kinetic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>使い方ガイド | 筋トレ記録 Pro</title>
+<meta name="color-scheme" content="light dark">
+<script>
+  try {
+    var t = localStorage.getItem('workout_theme_v1');
+    if (['kinetic', 'tactile', 'editorial', 'senior'].indexOf(t) >= 0) document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
+<style>
+  :root {
+    --bg-color: #0a0a0b; --card-bg: #161618; --card-hover: #222226;
+    --text-main: #ffffff; --text-sub: #8e8e93;
+    --accent: #ccff00; --accent-hover: #aadd00; --border: #2c2c30;
+    --danger: #ff453a; --success: #30d158; --gold: #ffb800;
+  }
+  html[data-theme="tactile"] {
+    --bg-color: #0a0a0b; --card-bg: #161618; --card-hover: #222226;
+    --text-main: #f4f4f0; --text-sub: #9d9d97;
+    --accent: #ff5722; --accent-hover: #e64a19; --border: #26262a;
+    --danger: #ff5252; --success: #4caf50; --gold: #e5b84b;
+  }
+  html[data-theme="editorial"] {
+    --bg-color: #eae8e1; --card-bg: #f7f6f2; --card-hover: #efede6;
+    --text-main: #181816; --text-sub: #6b675e;
+    --accent: #c23b22; --accent-hover: #9e2e1b; --border: #d8d5cd;
+    --danger: #c62828; --success: #2e7d32; --gold: #c88a2b;
+  }
+  html[data-theme="senior"] {
+    --bg-color: #fffef7; --card-bg: #ffffff; --card-hover: #f3f0e2;
+    --text-main: #141414; --text-sub: #45453e;
+    --accent: #1d4ed8; --accent-hover: #1e40af; --border: #8f8a76;
+    --danger: #b91c1c; --success: #15803d; --gold: #b45309;
+    font-size: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-color); color: var(--text-main);
+    max-width: 600px; margin: 0 auto; padding: 0 16px 120px;
+    line-height: 1.7; font-size: 0.95rem;
+  }
+  html[data-theme="senior"] body { line-height: 1.85; }
+  a { color: var(--accent); }
+  .topbar {
+    position: sticky; top: 0; z-index: 10; background: var(--bg-color);
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg);
+    color: var(--text-main); text-decoration: none; font-weight: 700; font-size: 0.9rem;
+  }
+  html[data-theme="senior"] .back-btn { min-height: 52px; }
+  .topbar .ttl { font-weight: 800; font-size: 1.05rem; }
+  h1 { font-size: 1.55rem; font-weight: 900; line-height: 1.35; margin: 26px 0 8px; }
+  h2 { font-size: 1.22rem; font-weight: 800; margin: 38px 0 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sub { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 14px; }
+  .lead { font-size: 1rem; margin-bottom: 16px; }
+  .shortcuts { display: flex; flex-direction: column; gap: 10px; margin: 18px 0 6px; }
+  .shortcut {
+    display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 12px 16px;
+    border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg);
+    color: var(--text-main); text-decoration: none; font-weight: 700;
+  }
+  .shortcut .arr { margin-left: auto; color: var(--accent); font-weight: 800; }
+  .pill {
+    font-size: 0.68rem; font-weight: 700; color: var(--text-sub);
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; white-space: nowrap;
+  }
+  .step { margin: 20px 0; }
+  .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .step-num {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent); color: #ffffff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.95rem;
+  }
+  html[data-theme="kinetic"] .step-num { color: #000000; }
+  html[data-theme="tactile"] .step-num { color: #0a0a0b; }
+  .step-title { font-weight: 700; font-size: 1.02rem; }
+  .cap { margin-top: 8px; font-size: 0.9rem; }
+  .cap b { color: var(--text-main); }
+  .note {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 12px 14px; font-size: 0.88rem; margin: 14px 0;
+  }
+  details.acc {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+    margin: 10px 0; overflow: hidden;
+  }
+  details.acc summary {
+    list-style: none; cursor: pointer; min-height: 52px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px; font-weight: 700;
+  }
+  details.acc summary::-webkit-details-marker { display: none; }
+  details.acc summary .arr { margin-left: auto; color: var(--accent); font-weight: 800; transition: transform 0.15s; }
+  details.acc[open ] summary .arr { transform: rotate(90deg); }
+  details.acc .acc-body { padding: 0 16px 16px; font-size: 0.9rem; }
+  .bottombar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: var(--bg-color); border-top: 1px solid var(--border);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    display: flex; justify-content: center;
+  }
+  .bottombar a {
+    width: 100%; max-width: 568px; min-height: 52px; display: flex; align-items: center; justify-content: center;
+    border-radius: 999px; background: var(--accent); color: #ffffff; text-decoration: none; font-weight: 800;
+  }
+  html[data-theme="kinetic"] .bottombar a { color: #000000; }
+  html[data-theme="tactile"] .bottombar a { color: #0a0a0b; }
+  /* ミニ画面（実際の画面の再現） */
+  .mock-screen { background: var(--bg-color); border: 1px solid var(--border); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+  .mock-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .mock-label { font-size: 0.7rem; font-weight: 700; color: var(--text-sub); letter-spacing: 0.04em; }
+  .mock-rowflex { display: flex; gap: 6px; }
+  .mock-chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); font-size: 0.78rem; white-space: nowrap; }
+  .mock-chip.on { background: var(--accent); border-color: var(--accent); color: #ffffff; font-weight: 700; }
+  html[data-theme="kinetic"] .mock-chip.on { color: #000000; }
+  html[data-theme="tactile"] .mock-chip.on { color: #0a0a0b; }
+  .mock-select { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+  .mock-prevbar { background: var(--card-hover); border-radius: 8px; padding: 6px 10px; font-size: 0.72rem; color: var(--text-sub); text-align: center; }
+  .mock-display { background: var(--bg-color); border-radius: 12px; padding: 6px; text-align: center; font-size: 1.6rem; font-weight: 800; line-height: 1.1; color: var(--text-main); font-variant-numeric: tabular-nums; }
+  .mock-display .unit { font-size: 0.85rem; color: var(--text-sub); font-weight: 400; }
+  .mock-btn { flex: 1; background: var(--card-hover); border: 1px solid var(--border); border-radius: 10px; padding: 7px 2px; font-size: 0.76rem; text-align: center; color: var(--text-main); }
+  .mock-timerbar { background: var(--text-main); color: var(--bg-color); border-radius: 10px; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  .mock-record { background: var(--accent); color: #ffffff; border-radius: 999px; padding: 12px 8px; text-align: center; font-weight: 800; font-size: 0.82rem; flex: 1; }
+  html[data-theme="kinetic"] .mock-record { color: #000000; }
+  html[data-theme="tactile"] .mock-record { color: #0a0a0b; }
+  .mock-skip { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 999px; padding: 8px 10px; text-align: center; font-size: 0.72rem; font-weight: 700; line-height: 1.3; }
+  .mock-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .mock-cal div { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; border-radius: 7px; background: var(--card-bg); color: var(--text-main); position: relative; }
+  .mock-cal .done::after { content: ""; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+  .mock-cal .today { border: 2px solid var(--gold); font-weight: 800; }
+  .mock-cal .sel { background: var(--accent); color: #ffffff; font-weight: 800; }
+  html[data-theme="kinetic"] .mock-cal .sel { color: #000000; }
+  html[data-theme="tactile"] .mock-cal .sel { color: #0a0a0b; }
+  .mock-progress { height: 8px; border-radius: 999px; background: var(--card-hover); overflow: hidden; }
+  .mock-progress i { display: block; height: 100%; width: 66%; background: var(--accent); border-radius: 999px; }
+  .mock-listrow { display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; font-size: 0.84rem; color: var(--text-main); }
+  .mock-listrow .star { color: var(--gold); font-size: 1rem; }
+  .mock-listrow .grow { flex: 1; }
+  .mock-tag { font-size: 0.66rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--accent); color: var(--text-main); font-weight: 700; white-space: nowrap; }
+  .mock-tag.var { border-style: dashed; border-color: var(--text-sub); color: var(--text-sub); font-weight: 600; }
+  .redmark { position: relative; }
+  .redmark::after { content: ""; position: absolute; inset: -5px -6px; border: 3px solid #E60012; border-radius: 50%; transform: rotate(-3deg); pointer-events: none; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back-btn" href="index.html">← アプリに戻る</a>
+  <span class="ttl">使い方ガイド</span>
+</header>
+
+<h1>最初に覚えるのは、<br>たった3つだけ</h1>
+<p class="lead">種目を選ぶ → 数字を入れる → ボタンを押す。他の機能は、慣れてからで大丈夫です。</p>
+
+<div class="shortcuts">
+  <a class="shortcut" href="#basic">🏋️ 記録のしかた<span class="arr">›</span></a>
+  <a class="shortcut" href="#review">📅 ふり返りの見かた<span class="arr">›</span></a>
+  <a class="shortcut" href="#theme-size">🔎 文字を大きく見やすくする<span class="arr">›</span></a>
+</div>
+
+<h2 id="basic">基本：1セットを記録する</h2>
+<p class="sub">前回の記録が自動で入るので、変えたい数字だけでOKです。</p>
+
+<div class="step">
+  <div class="step-head"><div class="step-num">1</div><div class="step-title">種目を選ぶ</div></div>
+  <div class="mock-screen">
+    <div class="mock-rowflex"><span class="mock-chip">全て</span><span class="mock-chip on">胸</span><span class="mock-chip">背中</span><span class="mock-chip">肩</span><span class="mock-chip">腕</span><span class="mock-chip">脚</span></div>
+    <div class="mock-card"><div class="mock-label">種目を選択</div>
+      <div class="redmark"><div class="mock-select"><span>バーベル ベンチプレス</span><span>▾</span></div></div>
+      <div class="mock-prevbar">前回: 60kg × 10回 (PR: 70kg)</div>
+    </div>
+  </div>
+  <p class="cap">一番上で部位を選び、<b>種目名のボタンを押して</b>種目を選びます。下のバーには前回の記録と PR（自己ベスト）が出ます。</p>
+</div>
+
+<div class="step">
+  <div class="step-head"><div class="step-num">2</div><div class="step-title">重量と回数を入れる</div></div>
+  <div class="mock-screen">
+    <div class="mock-card"><div class="mock-label">重量 (WEIGHT) ⇄ 左右になぞって調整</div>
+      <div class="redmark"><div class="mock-display">60<span class="unit">kg</span></div></div>
+      <div class="mock-rowflex"><span class="mock-btn">-10</span><span class="mock-btn">-5</span><span class="mock-btn">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn">+10</span></div>
+    </div>
+    <div class="mock-card"><div class="mock-label">回数 (REPS)</div>
+      <div class="mock-display">10<span class="unit">reps</span></div>
+    </div>
+  </div>
+  <p class="cap"><b>数字の部分を左右になぞる</b>か、ボタンで調整します。「+0.5」は少しだけ重くしたいとき用です。</p>
+</div>
+
+<div class="step">
+  <div class="step-head"><div class="step-num">3</div><div class="step-title">タイマーを選んで、記録する</div></div>
+  <div class="mock-screen">
+    <div class="mock-timerbar"><span>⏱ 休憩中</span><span>1:30</span></div>
+    <div class="mock-card"><div class="mock-label">休憩タイマー設定（記録時に画面上部で自動カウントダウン）</div>
+      <div class="mock-rowflex"><span class="mock-chip">30s</span><span class="mock-chip">60s</span><span class="mock-chip on">90s</span><span class="mock-chip">120s</span><span class="mock-chip">180s</span></div>
+    </div>
+    <div class="mock-rowflex" style="align-items:stretch;">
+      <div class="redmark" style="flex:1; display:flex;"><div class="mock-record">✓ 第 1 セットを記録 &amp; 90秒タイマー開始</div></div>
+      <div class="mock-skip">⚡即記録<br>タイマーなし</div>
+    </div>
+  </div>
+  <p class="cap">先に休憩時間を選び、<b>大きなボタンを押すだけ</b>。記録と同時に、画面の上で休憩のカウントダウンが始まります。タイマーがいらない日は「⚡即記録」で大丈夫です。</p>
+</div>
+
+<h2>間違えても直せる・迷ったらおまかせ</h2>
+<p class="sub">記録したセットは、その場で直せます。</p>
+
+<div class="step">
+  <div class="step-head"><div class="step-num">✓</div><div class="step-title">本日の記録済みセット</div></div>
+  <div class="mock-screen">
+    <div class="mock-card"><div class="mock-label">本日の記録済みセット</div>
+      <div class="redmark"><div class="mock-listrow"><span>1セット目</span><span class="grow"></span><span>60kg × 10回</span><span>✏️</span><span>🗑</span></div></div>
+      <div class="mock-listrow"><span>2セット目</span><span class="grow"></span><span>60kg × 9回</span><span>✏️</span><span>🗑</span></div>
+    </div>
+  </div>
+  <p class="cap">記録画面の下に、その日のセットが並びます。<b>タップすれば直したり消したり</b>できます。</p>
+</div>
+
+<div class="step">
+  <div class="step-head"><div class="step-num">💡</div><div class="step-title">今日のおすすめ</div></div>
+  <div class="mock-screen">
+    <div class="mock-card"><div class="mock-label">💡 今日のおすすめ（胸の日）</div>
+      <div class="mock-rowflex"><span class="mock-chip">ベンチプレス <span class="mock-tag">定番</span></span><span class="mock-chip">ケーブル フライ <span class="mock-tag var">変化球</span></span></div>
+    </div>
+  </div>
+  <p class="cap">何をやるか迷ったら、記録画面の上の<b>おすすめから選ぶだけ</b>。「定番」はよくやる種目、「変化球」は久しぶりの種目です。</p>
+</div>
+
+<h2 id="review">ふり返りを見る</h2>
+<p class="sub">続けた日数と成長が、ひと目でわかります。</p>
+
+<div class="step">
+  <div class="mock-screen">
+    <div class="mock-card"><div class="mock-label">📅 今週の目標（週3回）</div><div class="mock-progress"><i></i></div><div class="mock-label">今週は 2 / 3 回</div></div>
+    <div class="mock-card"><div class="mock-label">2026年 11月</div>
+      <div class="mock-cal"><div>1</div><div class="done">2</div><div>3</div><div>4</div><div class="done">5</div><div>6</div><div>7</div><div>8</div><div class="sel">9</div><div>10</div><div>11</div><div class="today done">12</div><div>13</div><div>14</div></div>
+    </div>
+    <div class="redmark"><div class="mock-listrow"><span>11月9日の実施記録</span><span class="grow"></span><span>60kg × 10回</span></div></div>
+  </div>
+  <p class="cap">「カレンダー」タブを開くと、<b>やった日に印</b>がついています。日付を押すと、その日の記録が見られます。金色の枠が今日です。</p>
+</div>
+
+<div class="note">📈 <b>成長グラフ</b>：種目を選んで「📈 成長曲線・詳細」を押すと、重さの伸びがグラフで見られます。金色の印が PR（自己ベスト）です。月間総負荷量（持ち上げた重さの合計）もカレンダーの上に表示されます。</div>
+
+<h2>慣れてきたら使える便利機能</h2>
+<p class="sub">今は読まなくて大丈夫です。必要なときだけ開いてください。</p>
+
+<details class="acc">
+  <summary>★ よく使う種目をお気に入りに<span class="pill">慣れたら</span><span class="arr">›</span></summary>
+  <div class="acc-body">
+    <p>「種目」タブで★を押すとお気に入りになり、一覧の上に並びます。上の検索欄に種目名を入れると、すぐに探せます。</p>
+  </div>
+</details>
+
+<details class="acc">
+  <summary>＋ 自分の種目を追加する<span class="pill">慣れたら</span><span class="arr">›</span></summary>
+  <div class="acc-body">
+    <p>「種目」タブや記録画面の「＋ 種目追加」から、一覧にない種目を足せます。追加した種目も、記録や成長グラフの対象になります。</p>
+  </div>
+</details>
+
+<details class="acc" id="theme-size">
+  <summary>🎨 見た目と文字の大きさを変える<span class="arr">›</span></summary>
+  <div class="acc-body">
+    <p>設定（⚙）の「テーマ」から、4種類のデザインを選べます。</p>
+    <p style="margin-top:8px;">・<b>Kinetic Club</b>：黒×ライム。数字が大きくスポーティ<br>・<b>Tactile Hardware</b>：黒×オレンジ。計器のような見た目<br>・<b>Editorial</b>：明るい紙色×朱色。雑誌のような見た目<br>・<b>シンプル</b>：白地で文字が1.25倍。いちばん読みやすい</p>
+    <p style="margin-top:8px;">文字を大きくしたいときは<b>「シンプル」</b>を選んでください。このガイドの文字も連動して大きくなります。</p>
+  </div>
+</details>
+
+<details class="acc">
+  <summary>⚙ おすすめの条件と週間目標<span class="pill">お好みで</span><span class="arr">›</span></summary>
+  <div class="acc-body">
+    <p>設定で「目指す体型（バランス／逆三角形／厚い胸板／健康維持）」と「使える器具」を選ぶと、おすすめの精度が上がります。週間目標（週に何回やるか）もここで変えられます。</p>
+  </div>
+</details>
+
+<details class="acc">
+  <summary>🛠 動きがおかしいとき（動作診断）<span class="pill">困ったとき</span><span class="arr">›</span></summary>
+  <div class="acc-body">
+    <p>設定の一番下にある「診断を実行する」を押すと、端末の状態が表示されます。不具合を伝えるときに、その画面のスクリーンショットを送ってもらえると早く直せます。</p>
+  </div>
+</details>
+
+<h2>記録は自動で保存されます</h2>
+<p class="cap">記録はクラウド（インターネット上）に自動保存されます。スマホを買い替えても、<b>同じアカウントでログインするだけ</b>で、そのまま続きから使えます。消える心配はありません。</p>
+
+<div class="bottombar"><a href="index.html">← アプリに戻る</a></div>
+
+<script>
+  if (location.hash === '#theme-size') {
+    var d = document.getElementById('theme-size');
+    if (d) d.open = true;
+  }
+</script>
+</body>
+</html>
