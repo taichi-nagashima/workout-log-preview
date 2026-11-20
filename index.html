@@ -1242,6 +1242,18 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+<style id="cal-header-fix-css">
+        /* 見出しがボタンに押し潰されて1文字ずつ縦に折り返す不具合の修正
+           （body の overflow-wrap:anywhere で flex の見出しの最小幅が1文字になるのが原因。
+             見出しは潰さず、入りきらないボタンは下の行に回す） */
+        .calendar-header { flex-wrap: wrap; row-gap: 8px; }
+        .calendar-header > div { flex-shrink: 0; }
+        #calMonthTitle { white-space: nowrap; overflow-wrap: normal; }
+        .selected-log-header { flex-wrap: wrap; row-gap: 8px; }
+        #selectedDateLogTitle { white-space: nowrap; overflow-wrap: normal; flex-shrink: 0; }
+        .selected-log-header > div { flex-wrap: wrap; }
+        .modal-header h3 { overflow-wrap: normal; }
+    </style>
     <style id="senior-howto-css">
         /* シンプルテーマ: 使い方も実際の表示に合わせ、隠した機能の説明を出さない・文字を大きく */
         html[data-theme="senior"] .senior-hide { display: none !important; }
@@ -1478,7 +1490,7 @@
             </div>
 
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div class="selected-log-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <span class="section-label" id="selectedDateLogTitle" style="margin-bottom:0;">の実施記録</span>
                     <div style="display:flex; gap:6px;">
                         <button class="action-icon-btn accent" onclick="switchToWorkoutForSelectedDate()">＋ この日に記録追加</button>
