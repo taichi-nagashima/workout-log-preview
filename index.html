@@ -1208,6 +1208,7 @@
         html[data-theme="senior"] button[onclick="adjustWeight(0.5)"] { display: none !important; }
         html[data-theme="senior"] button[onclick="adjustReps(-2)"] { display: none !important; }
         html[data-theme="senior"] button[onclick="adjustReps(2)"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustWeight(1)"]:not(.main-adjust) { display: none !important; }
         html[data-theme="senior"] #recommendCard { display: none !important; }
         html[data-theme="senior"] .summary-banner-btn { display: none !important; }
     </style>
@@ -1550,6 +1551,11 @@
                     <span class="check">✓</span>
                 </button>
             </div>
+            <span class="section-label">⚖️ 単位</span>
+            <div style="display:flex; gap:10px; margin-bottom:22px;">
+                <button class="theme-opt" data-unit-opt="kg" onclick="setUnit('kg')" style="flex:1; justify-content:center;"><span><span class="tname">kg</span><span class="tdesc">キログラム</span></span><span class="check">✓</span></button>
+                <button class="theme-opt" data-unit-opt="lb" onclick="setUnit('lb')" style="flex:1; justify-content:center;"><span><span class="tname">lb</span><span class="tdesc">ポンド</span></span><span class="check">✓</span></button>
+            </div>
             <div id="recSettingsBlock">
             <span class="section-label">💡 おすすめの設定</span>
             <div style="margin-bottom:8px; font-size:0.8rem; color:var(--text-sub);">トレーニング目標</div>
@@ -1710,7 +1716,7 @@
             </div>
             <input type="hidden" id="editSetDate">
             <input type="hidden" id="editSetIndex">
-            <span class="section-label">重量 (kg) / 負荷</span>
+            <span class="section-label" id="editSetWeightLabel">重量 (kg) / 負荷</span>
             <input type="number" step="0.5" class="form-input" id="editSetWeightInput">
             <span class="section-label">回数 (回) / 時間 (分)</span>
             <input type="number" step="1" class="form-input" id="editSetRepsInput">
@@ -1821,6 +1827,58 @@
             editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' },
             senior:    { line: '#1d4ed8', pointStroke: '#ffffff', grid: '#ddd8c2', main: '#141414', sub: '#45453e' }
         };
+        // ===== 単位（kg / lb）: 内部データは kg で保持し、表示・入力だけを変換する =====
+        const LB_PER_KG = 2.20462;
+        function wUnitPref() { try { return localStorage.getItem('workout_unit_v1') === 'lb' ? 'lb' : 'kg'; } catch (e) { return 'kg'; } }
+        function isLbUnit() { return wUnitPref() === 'lb'; }
+        function dispW(kg) { const v = Number(kg) || 0; return isLbUnit() ? Math.round(v * LB_PER_KG * 2) / 2 : v; }
+        function kgFromDisp(v) { return isLbUnit() ? Math.round((v / LB_PER_KG) * 100) / 100 : v; }
+        function fmtW(kg) { return dispW(kg) + wUnitPref(); }
+        function dispVol(kgVol) { return isLbUnit() ? Math.round(kgVol * LB_PER_KG) : kgVol; }
+        function currentExerciseIsCardio() { const el = document.getElementById('exerciseSelect'); const o = el ? defaultExercises.find(e => e.name === el.value) : null; return !!(o && o.category === '有酸素'); }
+        function syncUnitOptions() {
+            const u = wUnitPref();
+            document.querySelectorAll('[data-unit-opt]').forEach(function(b) { b.classList.toggle('selected', b.getAttribute('data-unit-opt') === u); });
+        }
+        function swapPresetButtons() {
+            const area = document.getElementById('weightSwipeArea');
+            if (!area) return;
+            const card = area.closest('.card');
+            if (!card) return;
+            const btns = card.querySelectorAll('.adjust-btn:not(.main-adjust)');
+            const conf = isLbUnit()
+                ? [['adjustWeight(-10)', '-10'], ['adjustWeight(-5)', '-5'], ['adjustWeight(1)', '+1'], ['adjustWeight(5)', '+5'], ['adjustWeight(10)', '+10']]
+                : [['adjustWeight(-10)', '-10'], ['adjustWeight(-5)', '-5'], ['adjustWeight(0.5)', '+0.5'], ['adjustWeight(5)', '+5'], ['adjustWeight(10)', '+10']];
+            btns.forEach(function(b, i) { if (conf[i]) { b.setAttribute('onclick', conf[i][0]); b.textContent = conf[i][1]; } });
+            area.title = isLbUnit() ? '左右にスワイプで1lbずつ増減' : '左右にスワイプで1kgずつ増減';
+        }
+        function applyHowtoUnit() {
+            const modal = document.getElementById('howtoModal');
+            if (!modal) return;
+            if (window.__howtoOrig == null) window.__howtoOrig = modal.innerHTML;
+            let h = window.__howtoOrig;
+            if (isLbUnit()) {
+                h = h.split('60<span class="unit">kg</span>').join('132<span class="unit">lb</span>')
+                     .split('60kg').join('132lb')
+                     .split('70kg').join('154lb')
+                     .split('>+0.5<').join('>+1<');
+            }
+            modal.innerHTML = h;
+        }
+        function applyUnit() {
+            syncUnitOptions();
+            swapPresetButtons();
+            applyHowtoUnit();
+            onExerciseChange();
+            renderCalendar();
+            if (document.getElementById('exerciseModal').classList.contains('open')) openExerciseDetail(currentDetailExName);
+        }
+        function setUnit(u) {
+            try { localStorage.setItem('workout_unit_v1', u); } catch (e) {}
+            applyUnit();
+            showToast(u === 'lb' ? '単位を lb（ポンド）に切り替えました' : '単位を kg に切り替えました');
+        }
+
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'editorial'; }
         function getCatColor(cat) {
             const m = THEME_CAT_COLORS[currentTheme()] || THEME_CAT_COLORS.kinetic;
@@ -2330,6 +2388,9 @@
             syncExerciseCountsFromLogs();
             resetToToday();
             updateExerciseDropdown();
+            syncUnitOptions();
+            swapPresetButtons();
+            applyHowtoUnit();
             onExerciseChange();
             renderCalendar();
             renderMasterList();
@@ -2987,17 +3048,18 @@
 
             // 前回情報バーの表示更新
             const prevBar = document.getElementById('prevInfoBar');
-            const wUnit = isCardio ? '' : 'kg';
+            const wUnit = isCardio ? '' : wUnitPref();
+            const wD = (v) => isCardio ? v : dispW(v);
             const rUnit = isCardio ? '分' : '回';
 
             if (lastRecord) {
                 if (targetSetNum >= 2 && matchingPrevSet) {
-                    prevBar.innerHTML = `前回(${lastDate.slice(5)} 第${targetSetNum}セット): <span>${matchingPrevSet.weight}${wUnit} × ${matchingPrevSet.reps}${rUnit}</span> (PR: ${maxWeight}${wUnit} / 1RM:${max1rm}${wUnit})`;
+                    prevBar.innerHTML = `前回(${lastDate.slice(5)} 第${targetSetNum}セット): <span>${wD(matchingPrevSet.weight)}${wUnit} × ${matchingPrevSet.reps}${rUnit}</span> (PR: ${wD(maxWeight)}${wUnit} / 1RM:${wD(max1rm)}${wUnit})`;
                 } else {
-                    prevBar.innerHTML = `前回(${lastDate.slice(5)}): <span>${lastRecord.weight}${wUnit} × ${lastRecord.reps}${rUnit}</span> (PR: ${maxWeight}${wUnit} / 1RM:${max1rm}${wUnit})`;
+                    prevBar.innerHTML = `前回(${lastDate.slice(5)}): <span>${wD(lastRecord.weight)}${wUnit} × ${lastRecord.reps}${rUnit}</span> (PR: ${wD(maxWeight)}${wUnit} / 1RM:${wD(max1rm)}${wUnit})`;
                 }
             } else if (prevTodaySet) {
-                prevBar.innerHTML = `本日記録中: <span>${prevTodaySet.weight}${wUnit} × ${prevTodaySet.reps}${rUnit}</span> (PR: ${maxWeight}${wUnit})`;
+                prevBar.innerHTML = `本日記録中: <span>${wD(prevTodaySet.weight)}${wUnit} × ${prevTodaySet.reps}${rUnit}</span> (PR: ${wD(maxWeight)}${wUnit})`;
             } else {
                 prevBar.innerHTML = `前回記録なし (初回挑戦)`;
             }
@@ -3067,7 +3129,7 @@
             const isCardio = exObj && exObj.category === '有酸素';
 
             document.getElementById('weightSectionLabel').innerText = isCardio ? '負荷・傾斜・速度' : '重量 (WEIGHT)';
-            document.getElementById('weightUnitLabel').innerText = isCardio ? 'Lv/km' : 'kg';
+            document.getElementById('weightUnitLabel').innerText = isCardio ? 'Lv/km' : wUnitPref();
             document.getElementById('repsSectionLabel').innerText = isCardio ? '時間 (TIME)' : '回数 (REPS)';
             document.getElementById('repsUnitLabel').innerText = isCardio ? '分' : 'reps';
             syncPickerDisplay();
@@ -3084,12 +3146,19 @@
         }
 
         function updateDisplayValues() {
-            document.getElementById('weightValue').innerText = currentWeight;
+            document.getElementById('weightValue').innerText = currentExerciseIsCardio() ? currentWeight : dispW(currentWeight);
             document.getElementById('repsValue').innerText = currentReps;
         }
 
         function adjustWeight(val) {
-            currentWeight = Math.max(0, parseFloat((currentWeight + val).toFixed(1)));
+            if (currentExerciseIsCardio()) {
+                currentWeight = Math.max(0, parseFloat((currentWeight + val).toFixed(1)));
+            } else if (isLbUnit()) {
+                const nextDisp = Math.max(0, Math.round((dispW(currentWeight) + val) * 2) / 2);
+                currentWeight = kgFromDisp(nextDisp);
+            } else {
+                currentWeight = Math.max(0, parseFloat((currentWeight + val).toFixed(1)));
+            }
             updateDisplayValues();
         }
 
@@ -3153,7 +3222,7 @@
 
             const recordedSetNum = currentSetNum;
             if (isNewPr) {
-                showToast(`🏆 NEW PR! ${exName} ${currentWeight}kg 自己ベスト更新！`);
+                showToast(`🏆 NEW PR! ${exName} ${(defaultExercises.find(e => e.name === exName) || {}).category === '有酸素' ? currentWeight + 'kg' : fmtW(currentWeight)} 自己ベスト更新！`);
             } else if (skipTimer) {
                 showToast(`⚡ 第${recordedSetNum}セットを即記録しました！`);
             } else {
@@ -3484,7 +3553,7 @@
             if (!el) return;
             const vol = (daySets || []).reduce((sum, s) => sum + (Number(s.weight) || 0) * (Number(s.reps) || 0), 0);
             if (!daySets || daySets.length === 0) { el.innerHTML = ''; return; }
-            let html = '総重量 <b style="color:var(--text-main);">' + vol.toLocaleString() + ' kg</b>';
+            let html = '総重量 <b style="color:var(--text-main);">' + dispVol(vol).toLocaleString() + ' ' + wUnitPref() + '</b>';
             let prevDate = null;
             Object.keys(workoutLogs).forEach(ds => {
                 if (ds < currentDayStr && (workoutLogs[ds] || []).length > 0 && (!prevDate || ds > prevDate)) prevDate = ds;
@@ -3493,7 +3562,7 @@
                 const prevVol = (workoutLogs[prevDate] || []).reduce((sum, s) => sum + (Number(s.weight) || 0) * (Number(s.reps) || 0), 0);
                 const diff = vol - prevVol;
                 const color = diff > 0 ? 'var(--accent)' : 'var(--text-sub)';
-                html += '（前回 ' + prevDate.slice(5).replace('-', '/') + ' 比 <span style="color:' + color + '; font-weight:700;">' + (diff > 0 ? '+' : '') + diff.toLocaleString() + ' kg</span>）';
+                html += '（前回 ' + prevDate.slice(5).replace('-', '/') + ' 比 <span style="color:' + color + '; font-weight:700;">' + (diff > 0 ? '+' : '') + dispVol(diff).toLocaleString() + ' ' + wUnitPref() + '</span>）';
             }
             el.innerHTML = html;
         }
@@ -3520,13 +3589,13 @@
             const renderRow = (s, highlight) => {
                 const exObj = defaultExercises.find(e => e.name === s.exerciseName);
                 const isCardio = exObj && exObj.category === '有酸素';
-                const wU = isCardio ? '負荷' : 'kg';
+                const wU = isCardio ? '負荷' : wUnitPref();
                 const rU = isCardio ? '分' : '回';
                 return `
                     <div class="set-item-card" style="${highlight ? 'border-color:rgba(59,130,246,0.45);' : ''}">
                         <div class="set-item-info">
                             <div style="font-size:0.78rem; color:var(--text-sub);">${s.exerciseName}</div>
-                            <strong>第${s.setNum}セット</strong>: ${s.weight}${wU} × ${s.reps}${rU}
+                            <strong>第${s.setNum}セット</strong>: ${isCardio ? s.weight : dispW(s.weight)}${wU} × ${s.reps}${rU}
                             ${s.isPr ? '<span class="pr-badge">PR</span>' : ''}
                         </div>
                         <div class="set-item-actions">
@@ -3552,7 +3621,10 @@
             document.getElementById('editSetDate').value = dateStr;
             document.getElementById('editSetIndex').value = index;
             document.getElementById('editSetModalTitle').innerText = `${target.exerciseName} (第${target.setNum}セット) の編集`;
-            document.getElementById('editSetWeightInput').value = target.weight;
+            const editExObj = defaultExercises.find(e => e.name === target.exerciseName);
+            const editIsCardio = !!(editExObj && editExObj.category === '有酸素');
+            document.getElementById('editSetWeightLabel').innerText = editIsCardio ? '重量（負荷）' : `重量 (${wUnitPref()}) / 負荷`;
+            document.getElementById('editSetWeightInput').value = editIsCardio ? target.weight : dispW(target.weight);
             document.getElementById('editSetRepsInput').value = target.reps;
             document.getElementById('editSetModal').classList.add('open');
         }
@@ -3570,7 +3642,8 @@
             const newW = parseFloat(document.getElementById('editSetWeightInput').value);
             const newR = parseInt(document.getElementById('editSetRepsInput').value, 10);
             if (!isNaN(newW) && !isNaN(newR)) {
-                target.weight = newW;
+                const saveExObj = defaultExercises.find(e => e.name === target.exerciseName);
+                target.weight = (saveExObj && saveExObj.category === '有酸素') ? newW : kgFromDisp(newW);
                 target.reps = Math.max(1, newR);
                 persistLogs();
                 closeEditSetModal();
@@ -3686,7 +3759,7 @@
                 }
             }
             document.getElementById('statDays').innerText = activeDays + '日';
-            document.getElementById('statVolume').innerText = totalVol.toLocaleString() + ' kg';
+            document.getElementById('statVolume').innerText = dispVol(totalVol).toLocaleString() + ' ' + wUnitPref();
 
             renderSelectedDateLog(currentDayStr);
         }
@@ -3727,7 +3800,7 @@
                 let cat = exObj ? exObj.category : 'ワークアウト';
                 let catColor = getCatColor(cat);
                 let isCardio = cat === '有酸素';
-                let wU = isCardio ? '負荷' : 'kg';
+                let wU = isCardio ? '負荷' : wUnitPref();
                 let rU = isCardio ? '分' : '回';
 
                 html += `
@@ -3737,14 +3810,14 @@
                                 <span style="width:8px; height:8px; border-radius:50%; background:${catColor}; display:inline-block;"></span>
                                 ${exName}
                             </strong>
-                            <span style="font-size:0.75rem; color:var(--text-sub);">${cat} · ${sets.length}sets · ${totalExVol.toLocaleString()}${wU}</span>
+                            <span style="font-size:0.75rem; color:var(--text-sub);">${cat} · ${sets.length}sets · ${(isCardio ? totalExVol : dispVol(totalExVol)).toLocaleString()}${wU}</span>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;">
                 `;
                 sets.forEach(s => {
                     html += `
                         <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); border:1px solid var(--border); padding:6px 10px; border-radius:8px; font-size:0.85rem;">
-                            <span>第${s.setNum}セット: <b>${s.weight}${wU} × ${s.reps}${rU}</b> ${s.isPr ? '<span class="pr-badge">PR</span>' : ''}</span>
+                            <span>第${s.setNum}セット: <b>${isCardio ? s.weight : dispW(s.weight)}${wU} × ${s.reps}${rU}</b> ${s.isPr ? '<span class="pr-badge">PR</span>' : ''}</span>
                             <div style="display:flex; gap:4px;">
                                 <button class="action-icon-btn" style="padding:3px 7px;" onclick="openEditSetModal('${dStr}', ${s.originalIndex})">編集</button>
                                 <button class="action-icon-btn danger" style="padding:3px 7px;" onclick="deleteSetRecord('${dStr}', ${s.originalIndex})">削除</button>
@@ -3888,6 +3961,8 @@
             const exObj = defaultExercises.find(e => e.name === exName);
             document.getElementById('modalExTitle').innerText = exName;
             document.getElementById('modalExSubMeta').innerText = exObj ? `${exObj.category} · ${exObj.type}` : '';
+            const wConv = (v) => (exObj && exObj.category === '有酸素') ? v : dispW(v);
+            const wLbl = (exObj && exObj.category === '有酸素') ? 'kg' : wUnitPref();
 
             let maxW = 0;
             let max1rm = 0;
@@ -3907,7 +3982,7 @@
                             <div style="background:var(--bg-color); border:1px solid var(--border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <div style="font-size:0.75rem; color:var(--text-sub);">${date} (第${s.setNum}セット)</div>
-                                    <div style="font-size:0.95rem; font-weight:bold;">${s.weight}kg × ${s.reps}回 ${s.isPr ? '<span class="pr-badge">PR</span>' : ''}</div>
+                                    <div style="font-size:0.95rem; font-weight:bold;">${wConv(s.weight)}${wLbl} × ${s.reps}回 ${s.isPr ? '<span class="pr-badge">PR</span>' : ''}</div>
                                 </div>
                                 <div style="display:flex; gap:4px;">
                                     <button class="action-icon-btn" onclick="openEditSetModal('${date}', ${idx})">編集</button>
@@ -3919,8 +3994,8 @@
                 });
             });
 
-            document.getElementById('modalPrWeight').innerText = maxW + 'kg';
-            document.getElementById('modal1rm').innerText = max1rm + 'kg';
+            document.getElementById('modalPrWeight').innerText = wConv(maxW) + wLbl;
+            document.getElementById('modal1rm').innerText = wConv(max1rm) + wLbl;
             document.getElementById('modalTotalSets').innerText = totalSets;
             document.getElementById('modalHistoryList').innerHTML = historyHtml || '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:12px;">履歴がまだありません</div>';
 
@@ -3931,6 +4006,9 @@
         function renderGrowthChartSvg(exName) {
             const tc = THEME_CHART[currentTheme()] || THEME_CHART.kinetic;
             const container = document.getElementById('growthChartContainer');
+            const exObjC = defaultExercises.find(e => e.name === exName);
+            const wConvC = (v) => (exObjC && exObjC.category === '有酸素') ? v : dispW(v);
+            const wLblC = (exObjC && exObjC.category === '有酸素') ? 'kg' : wUnitPref();
             const dailyMax = {};
 
             Object.keys(workoutLogs).sort().forEach(date => {
@@ -3952,7 +4030,7 @@
                 return;
             }
 
-            const points = dates.slice(-10).map(d => ({ dateLabel: d.slice(5), val: dailyMax[d] }));
+            const points = dates.slice(-10).map(d => ({ dateLabel: d.slice(5), val: wConvC(dailyMax[d]) }));
             const w = 460, h = 170;
             const padL = 34, padR = 24, padT = 26, padB = 28;
             const vals = points.map(p => p.val);
@@ -3969,7 +4047,7 @@
             const polyLine = coords.map(c => `${c.x},${c.y}`).join(' ');
             const dotsHtml = coords.map(c => `
                 <circle cx="${c.x}" cy="${c.y}" r="4.5" fill="${tc.line}" stroke="${tc.pointStroke}" stroke-width="2"/>
-                <text x="${c.x}" y="${c.y - 9}" fill="${tc.main}" font-size="11" font-weight="bold" text-anchor="middle">${c.val}kg</text>
+                <text x="${c.x}" y="${c.y - 9}" fill="${tc.main}" font-size="11" font-weight="bold" text-anchor="middle">${c.val}${wLblC}</text>
                 <text x="${c.x}" y="${h - 6}" fill="${tc.sub}" font-size="10" text-anchor="middle">${c.dateLabel}</text>
             `).join('');
 
@@ -4019,7 +4097,7 @@
                 </div>
                 <p>🏋️ <b>鍛えた部位</b>: ${Array.from(categories).join(', ') || '全身'}</p>
                 <p>📊 <b>合計セット数</b>: ${totalSets} セット</p>
-                <p>🔥 <b>総負荷量</b>: <b>${totalVol.toLocaleString()} kg</b></p>
+                <p>🔥 <b>総負荷量</b>: <b>${dispVol(totalVol).toLocaleString()} ${wUnitPref()}</b></p>
                 <p style="color:var(--gold); margin:6px 0;">✨ <b>パワー換算</b>: ${equiv}</p>
                 <p>🏆 <b>本日のPR更新</b>: ${prCount} 件</p>
             `;

@@ -303,5 +303,18 @@
     if (d) d.open = true;
   }
 </script>
+<script>
+  // 単位が lb のときは、ガイド内の例（60kgなど）も lb 表記に合わせる
+  try {
+    if (localStorage.getItem('workout_unit_v1') === 'lb') {
+      document.body.innerHTML = document.body.innerHTML
+        .split('60<span class="unit">kg</span>').join('132<span class="unit">lb</span>')
+        .split('60kg').join('132lb')
+        .split('70kg').join('154lb')
+        .split('>+0.5<').join('>+1<')
+        .split('「+0.5」は少しだけ重くしたいとき用です').join('「+1」は少しだけ重くしたいとき用です');
+    }
+  } catch (e) {}
+</script>
 </body>
 </html>
