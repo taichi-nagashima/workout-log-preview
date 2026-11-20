@@ -1208,6 +1208,8 @@
         html[data-theme="senior"] button[onclick="adjustWeight(0.5)"] { display: none !important; }
         html[data-theme="senior"] button[onclick="adjustReps(-2)"] { display: none !important; }
         html[data-theme="senior"] button[onclick="adjustReps(2)"] { display: none !important; }
+        html[data-theme="senior"] #recommendCard { display: none !important; }
+        html[data-theme="senior"] .summary-banner-btn { display: none !important; }
     </style>
     <style id="senior-font-css">
         /* シンプルテーマ: ボタンの文字を一回り大きく（ユーザー指摘 2026-11-20） */
@@ -1223,6 +1225,21 @@
         html[data-theme="senior"] .floating-timer-bar .ft-btn { font-size: 1rem; }
         html[data-theme="senior"] .floating-timer-bar .ft-btn.stop { font-size: 1.12rem; }
         html[data-theme="senior"] .fav-btn { font-size: 1.5rem; }
+    </style>
+    <style id="editorial-plain-css">
+        /* Editorialをプレーンに: 細い文字を太く、装飾(透明背景・破線)を通常の面に（ユーザー指摘 2026-11-20） */
+        html[data-theme="editorial"] { --text-sub: #55534b; }
+        html[data-theme="editorial"] body { font-weight: 500; }
+        html[data-theme="editorial"] .input-display { font-weight: 600; }
+        html[data-theme="editorial"] .stat-value { font-weight: 700; }
+        html[data-theme="editorial"] #floatingTimeLeft { font-weight: 700; }
+        html[data-theme="editorial"] .section-label { letter-spacing: 0.04em; font-weight: 700; }
+        html[data-theme="editorial"] .cat-btn { background: var(--card-bg); }
+        html[data-theme="editorial"] .timer-btn { background: var(--card-bg); }
+        html[data-theme="editorial"] .adjust-btn { background: var(--card-bg); }
+        html[data-theme="editorial"] .record-skip-btn { background: var(--card-bg); }
+        html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
+        html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
 </head>
 <body>
