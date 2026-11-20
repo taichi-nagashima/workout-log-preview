@@ -1190,6 +1190,25 @@
         html[data-theme="kinetic"] .howto-more { color: #000000; }
         html[data-theme="tactile"] .howto-more { color: #0a0a0b; }
     </style>
+    <style id="senior-simplify-css">
+        /* シンプルテーマでは記録のコア以外を隠す（機能自体は残り、テーマを戻せば復活） */
+        html[data-theme="senior"] .record-action-row .record-skip-btn { display: none !important; }
+        html[data-theme="senior"] button[onclick="openCurrentExerciseChart()"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="openAddExerciseModal()"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="resetSetCount()"] { display: none !important; }
+        html[data-theme="senior"] .rec-tag-main, html[data-theme="senior"] .rec-tag-var { display: none !important; }
+        html[data-theme="senior"] #recommendBody > div:nth-of-type(2) { display: none !important; }
+        html[data-theme="senior"] #statVolumeCard { display: none !important; }
+        html[data-theme="senior"] .stats-grid { grid-template-columns: 1fr; }
+        html[data-theme="senior"] #tab-master .search-row { display: none !important; }
+        html[data-theme="senior"] button[onclick="deleteCurrentModalExercise()"] { display: none !important; }
+        html[data-theme="senior"] #recSettingsBlock { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustWeight(-10)"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustWeight(10)"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustWeight(0.5)"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustReps(-2)"] { display: none !important; }
+        html[data-theme="senior"] button[onclick="adjustReps(2)"] { display: none !important; }
+    </style>
 </head>
 <body>
 
@@ -1384,7 +1403,7 @@
                     <span class="section-label" id="statMonthDaysLabel">今月の実施日数</span>
                     <div class="stat-value" id="statDays">0日</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="statVolumeCard">
                     <span class="section-label">月間総負荷量</span>
                     <div class="stat-value" id="statVolume">0 kg</div>
                 </div>
@@ -1486,6 +1505,7 @@
                     <span class="check">✓</span>
                 </button>
             </div>
+            <div id="recSettingsBlock">
             <span class="section-label">💡 おすすめの設定</span>
             <div style="margin-bottom:8px; font-size:0.8rem; color:var(--text-sub);">トレーニング目標</div>
             <div id="recGoalChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;"></div>
@@ -1496,6 +1516,7 @@
                 <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() - 1)">−</button>
                 <span id="weeklyGoalSettingLabel" style="font-weight:700; font-size:1rem;">週3回</span>
                 <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() + 1)">＋</button>
+            </div>
             </div>
             <span class="section-label">使い方</span>
             <button class="record-skip-btn" style="width:100%; padding:13px; margin-bottom:22px;" onclick="openHowtoModal()">📖 使い方を見る</button>
