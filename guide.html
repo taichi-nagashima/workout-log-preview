@@ -150,6 +150,7 @@
   .mock-tag.var { border-style: dashed; border-color: var(--text-sub); color: var(--text-sub); font-weight: 600; }
   .redmark { position: relative; }
   .redmark::after { content: ""; position: absolute; inset: -5px -6px; border: 3px solid #E60012; border-radius: 50%; transform: rotate(-3deg); pointer-events: none; }
+  html[data-theme="senior"] .senior-hide { display: none !important; }
 </style>
 </head>
 <body>
@@ -187,13 +188,13 @@
   <div class="mock-screen">
     <div class="mock-card"><div class="mock-label">重量 (WEIGHT) ⇄ 左右スワイプで調整</div>
       <div class="redmark"><div class="mock-display">60<span class="unit">kg</span></div></div>
-      <div class="mock-rowflex"><span class="mock-btn">-10</span><span class="mock-btn">-5</span><span class="mock-btn">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn">+10</span></div>
+      <div class="mock-rowflex"><span class="mock-btn senior-hide">-10</span><span class="mock-btn">-5</span><span class="mock-btn senior-hide">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn senior-hide">+10</span></div>
     </div>
     <div class="mock-card"><div class="mock-label">回数 (REPS)</div>
       <div class="mock-display">10<span class="unit">reps</span></div>
     </div>
   </div>
-  <p class="cap"><b>数字の部分を左右にスワイプする</b>か、ボタンで調整します。「+0.5」は少しだけ重くしたいとき用です。</p>
+  <p class="cap"><b>数字の部分を左右にスワイプする</b>か、ボタンで調整します。<span class="senior-hide">「+0.5」は少しだけ重くしたいとき用です。</span></p>
 </div>
 
 <div class="step">
@@ -205,10 +206,10 @@
     </div>
     <div class="mock-rowflex" style="align-items:stretch;">
       <div class="redmark" style="flex:1; display:flex;"><div class="mock-record">✓ 第 1 セットを記録 &amp; 90秒タイマー開始</div></div>
-      <div class="mock-skip">⚡即記録<br>タイマーなし</div>
+      <div class="mock-skip senior-hide">⚡即記録<br>タイマーなし</div>
     </div>
   </div>
-  <p class="cap">先に休憩時間を選び、<b>大きなボタンを押すだけ</b>。記録と同時に、画面の上で「90秒」のように秒数でカウントダウンが始まります。途中で「−15秒／＋15秒」で調整したり「停止」したりもできます。タイマーがいらない日は「⚡即記録」で大丈夫です。</p>
+  <p class="cap">先に休憩時間を選び、<b>大きなボタンを押すだけ</b>。記録と同時に、画面の上で「90秒」のように秒数でカウントダウンが始まります。途中で「−15秒／＋15秒」で調整したり「停止」したりもできます。<span class="senior-hide">タイマーがいらない日は「⚡即記録」で大丈夫です。</span></p>
 </div>
 
 <h2>間違えても直せる・迷ったらおまかせ</h2>
@@ -225,7 +226,7 @@
   <p class="cap">記録画面の下に、その日のセットが並びます。直したいときは<b>「編集」</b>、消したいときは<b>「削除」</b>のボタンを押します。</p>
 </div>
 
-<div class="step">
+<div class="step senior-hide">
   <div class="step-head"><div class="step-num">💡</div><div class="step-title">今日のおすすめ</div></div>
   <div class="mock-screen">
     <div class="mock-card"><div class="mock-label">💡 今日のおすすめ（胸の日）</div>
@@ -249,7 +250,7 @@
   <p class="cap">「カレンダー」タブを開くと、<b>やった日に印</b>がついています。日付を押すと、その日の記録が見られます。金色の枠が今日です。</p>
 </div>
 
-<div class="note">📈 <b>成長グラフ</b>：種目を選んで「📈 成長曲線・詳細」を押すと、重さの伸びがグラフで見られます。金色の印が PR（自己ベスト）です。月間総負荷量（持ち上げた重さの合計）もカレンダーの上に表示されます。</div>
+<div class="note senior-hide">📈 <b>成長グラフ</b>：種目を選んで「📈 成長曲線・詳細」を押すと、重さの伸びがグラフで見られます。金色の印が PR（自己ベスト）です。月間総負荷量（持ち上げた重さの合計）もカレンダーの上に表示されます。</div>
 
 <h2>慣れてきたら使える便利機能</h2>
 <p class="sub">今は読まなくて大丈夫です。必要なときだけ開いてください。</p>
@@ -257,11 +258,11 @@
 <details class="acc">
   <summary>★ よく使う種目をお気に入りに<span class="pill">慣れたら</span><span class="arr">›</span></summary>
   <div class="acc-body">
-    <p>「種目」タブで★を押すとお気に入りになり、一覧の上に並びます。上の検索欄に種目名を入れると、すぐに探せます。</p>
+    <p>「種目」タブで★を押すとお気に入りになり、一覧の上に並びます。<span class="senior-hide">上の検索欄に種目名を入れると、すぐに探せます。</span></p>
   </div>
 </details>
 
-<details class="acc">
+<details class="acc senior-hide">
   <summary>＋ 自分の種目を追加する<span class="pill">慣れたら</span><span class="arr">›</span></summary>
   <div class="acc-body">
     <p>「種目」タブや記録画面の「＋ 種目追加」から、一覧にない種目を足せます。追加した種目も、記録や成長グラフの対象になります。</p>
@@ -277,7 +278,7 @@
   </div>
 </details>
 
-<details class="acc">
+<details class="acc senior-hide">
   <summary>⚙ おすすめの条件と週間目標<span class="pill">お好みで</span><span class="arr">›</span></summary>
   <div class="acc-body">
     <p>設定で「目指す体型（バランス／逆三角形／厚い胸板／健康維持・足腰強化）」と「使える器具」を選ぶと、おすすめの精度が上がります。週間目標（週に何回やるか）もここで変えられます。</p>

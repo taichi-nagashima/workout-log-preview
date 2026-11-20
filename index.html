@@ -1241,6 +1241,17 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+    <style id="senior-howto-css">
+        /* シンプルテーマ: 使い方も実際の表示に合わせ、隠した機能の説明を出さない・文字を大きく */
+        html[data-theme="senior"] .senior-hide { display: none !important; }
+        html[data-theme="senior"] .howto-cap { font-size: 1rem; line-height: 1.85; }
+        html[data-theme="senior"] .howto-title { font-size: 1.18rem; }
+        html[data-theme="senior"] #howtoModal .mock-label { font-size: 0.82rem; }
+        html[data-theme="senior"] #howtoModal .mock-chip, html[data-theme="senior"] #howtoModal .mock-select, html[data-theme="senior"] #howtoModal .mock-listrow, html[data-theme="senior"] #howtoModal .mock-theme { font-size: 0.98rem; }
+        html[data-theme="senior"] #howtoModal .mock-record { font-size: 0.95rem; }
+        html[data-theme="senior"] .howto-steps .howto-step:nth-of-type(6) .howto-num { font-size: 0; }
+        html[data-theme="senior"] .howto-steps .howto-step:nth-of-type(6) .howto-num::after { content: "5"; font-size: 0.95rem; }
+    </style>
 </head>
 <body>
 
@@ -1571,18 +1582,18 @@
                     <div class="howto-head"><div class="howto-num">1</div><div class="howto-title">種目を選ぶ</div></div>
                     <div class="mock-screen">
                         <div class="mock-rowflex"><span class="mock-chip">全て</span><span class="mock-chip on">胸</span><span class="mock-chip">背中</span><span class="mock-chip">肩</span><span class="mock-chip">腕</span><span class="mock-chip">脚</span></div>
-                        <div class="mock-card"><div class="mock-label">💡 今日のおすすめ</div><div class="mock-rowflex"><span class="mock-chip">ベンチプレス</span><span class="mock-chip">ダンベル フライ</span></div></div>
+                        <div class="mock-card senior-hide"><div class="mock-label">💡 今日のおすすめ</div><div class="mock-rowflex"><span class="mock-chip">ベンチプレス</span><span class="mock-chip">ダンベル フライ</span></div></div>
                         <div class="mock-card"><div class="mock-label">種目を選択</div>
                         <div class="redmark"><div class="mock-select"><span>バーベル ベンチプレス</span><span>▾</span></div></div>
                         <div class="mock-prevbar">前回: 60kg × 10回 (PR: 70kg)</div></div></div>
-                    <p class="howto-cap">「記録」タブの一番上で部位を選び、種目名のボタンをタップして種目を選びます。「💡 今日のおすすめ」から選ぶこともできます。前回の記録もここに表示されます。</p>
+                    <p class="howto-cap">「記録」タブの一番上で部位を選び、種目名のボタンをタップして種目を選びます。<span class="senior-hide">「💡 今日のおすすめ」から選ぶこともできます。</span>前回の記録もここに表示されます。</p>
                 </div>
                 <div class="howto-step">
                     <div class="howto-head"><div class="howto-num">2</div><div class="howto-title">重量と回数を入れる</div></div>
                     <div class="mock-screen">
                         <div class="mock-card"><div class="mock-label">重量 (WEIGHT) ⇄ 左右スワイプで調整</div>
                         <div class="redmark"><div class="mock-display">60<span class="unit">kg</span></div></div>
-                        <div class="mock-rowflex"><span class="mock-btn">-10</span><span class="mock-btn">-5</span><span class="mock-btn">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn">+10</span></div>
+                        <div class="mock-rowflex"><span class="mock-btn senior-hide">-10</span><span class="mock-btn">-5</span><span class="mock-btn senior-hide">+0.5</span><span class="mock-btn">+5</span><span class="mock-btn senior-hide">+10</span></div>
                         <div class="mock-rowflex"><span class="mock-btn">−</span><span class="mock-btn">＋</span></div></div>
                         <div class="mock-card"><div class="mock-label">回数 (REPS) ⇄ 左右スワイプで調整</div>
                         <div class="mock-display">10<span class="unit">reps</span></div></div></div>
@@ -1596,9 +1607,9 @@
                         <div class="mock-rowflex"><span class="mock-chip">30s</span><span class="mock-chip">60s</span><span class="mock-chip on">90s</span><span class="mock-chip">120s</span><span class="mock-chip">180s</span></div></div>
                         <div class="mock-rowflex" style="align-items:stretch;">
                         <div class="redmark" style="flex:1; display:flex;"><div class="mock-record">✓ 第 1 セットを記録 &amp; 90秒タイマー開始</div></div>
-                        <div class="mock-skip">⚡即記録<br>タイマーなし</div></div>
+                        <div class="mock-skip senior-hide">⚡即記録<br>タイマーなし</div></div>
                         <div class="mock-card"><div class="mock-label">本日の記録済みセット</div><div class="mock-listrow"><span>1セット目</span><span class="grow"></span><span>60kg × 10回</span></div></div></div>
-                    <p class="howto-cap">休憩タイマーは記録ボタンとセットです。先に時間（90sなど）を選んでおいて、大きなボタンを押すと、記録と同時に画面の上部で「90秒」のように秒数でカウントダウンが始まります。途中で−15秒／＋15秒や停止もできます。タイマーがいらないときは「⚡即記録」を押します。</p>
+                    <p class="howto-cap">休憩タイマーは記録ボタンとセットです。先に時間（90sなど）を選んでおいて、大きなボタンを押すと、記録と同時に画面の上部で「90秒」のように秒数でカウントダウンが始まります。途中で−15秒／＋15秒や停止もできます。<span class="senior-hide">タイマーがいらないときは「⚡即記録」を押します。</span></p>
                 </div>
                 <div class="howto-step">
                     <div class="howto-head"><div class="howto-num">4</div><div class="howto-title">カレンダーでふり返る</div></div>
@@ -1608,7 +1619,7 @@
                         <div class="redmark"><div class="mock-listrow"><span>11月9日の実施記録</span><span class="grow"></span><span>60kg × 10回</span></div></div></div>
                     <p class="howto-cap">「カレンダー」タブで、やった日に印（ドット）がつきます。日付をタップすると、その日の記録が見られます。金色の枠が今日です。今週の目標の進み具合もここで確認できます。</p>
                 </div>
-                <div class="howto-step">
+                <div class="howto-step senior-hide">
                     <div class="howto-head"><div class="howto-num">5</div><div class="howto-title">種目を増やす・お気に入り</div></div>
                     <div class="mock-screen">
                         <div class="mock-rowflex"><div class="mock-select" style="flex:1;"><span>種目名で検索</span><span>🔍</span></div><div class="redmark"><div class="mock-select"><span>＋ 種目追加</span></div></div></div>
