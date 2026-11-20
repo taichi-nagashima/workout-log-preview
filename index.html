@@ -1141,6 +1141,16 @@
         .rec-tag-main { border-color: var(--accent); color: var(--text-main); font-weight: 700; }
         .rec-tag-var { border-style: dashed; border-color: var(--text-sub); background: transparent; }
     </style>
+    <style id="howto-css">
+        /* 使い方モーダル: テーマ変数で描画し、選択中のデザインに連動する */
+        .howto-steps { display: flex; flex-direction: column; gap: 12px; }
+        .howto-step { display: flex; gap: 12px; align-items: flex-start; background: var(--card-hover); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+        .howto-num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; }
+        .howto-title { font-weight: 700; margin-bottom: 4px; }
+        .howto-body p { margin: 0; font-size: 0.88rem; line-height: 1.65; color: var(--text-sub); }
+        html[data-theme="kinetic"] .howto-num { color: #000000; }
+        html[data-theme="tactile"] .howto-num { color: #0a0a0b; }
+    </style>
 </head>
 <body>
 
@@ -1448,6 +1458,8 @@
                 <span id="weeklyGoalSettingLabel" style="font-weight:700; font-size:1rem;">週3回</span>
                 <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() + 1)">＋</button>
             </div>
+            <span class="section-label">使い方</span>
+            <button class="record-skip-btn" style="width:100%; padding:13px; margin-bottom:22px;" onclick="openHowtoModal()">📖 使い方を見る</button>
             <span class="section-label">アカウント</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
             <span class="section-label" style="margin-top:22px;">動作診断（不具合の報告用）</span>
@@ -1455,6 +1467,26 @@
             <div id="diagResult" style="font-size:0.72rem; line-height:1.7; color:var(--text-sub); white-space:pre-wrap; word-break:break-all; margin-top:10px;"></div>
         </div>
     </div>
+    <!-- 使い方モーダル -->
+    <div class="modal" id="howtoModal" onclick="if(event.target === this) closeHowtoModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📖 使い方</h3>
+                <button class="close-modal" onclick="closeHowtoModal()">✕</button>
+            </div>
+            <div class="howto-steps">
+                <div class="howto-step"><div class="howto-num">1</div><div class="howto-body"><div class="howto-title">種目を選ぶ</div><p>「記録」タブで、部位のボタンと種目をタップします。「💡 今日のおすすめ」のチップから選ぶこともできます。</p></div></div>
+                <div class="howto-step"><div class="howto-num">2</div><div class="howto-body"><div class="howto-title">重量と回数を入れる</div><p>数字の部分を左右にスワイプするか、＋／−ボタンで調整します。「+0.5」で少しだけ増やすこともできます。前回の記録が自動で入るので、変えたいところだけ直せばOKです。</p></div></div>
+                <div class="howto-step"><div class="howto-num">3</div><div class="howto-body"><div class="howto-title">記録する</div><p>「記録する」ボタンを押すとセットが保存されます。次のセットも同じように続けて記録します。</p></div></div>
+                <div class="howto-step"><div class="howto-num">4</div><div class="howto-body"><div class="howto-title">タイマーで休憩</div><p>時間を選んでスタートすると、カウントダウンが始まります。終わると音でお知らせします。</p></div></div>
+                <div class="howto-step"><div class="howto-num">5</div><div class="howto-body"><div class="howto-title">カレンダーでふり返る</div><p>「カレンダー」タブで、トレーニングした日に印がつきます。日付をタップすると、その日の記録が見られます。今週の目標の進み具合もここで確認できます。</p></div></div>
+                <div class="howto-step"><div class="howto-num">6</div><div class="howto-body"><div class="howto-title">種目を増やす・お気に入り</div><p>「種目」タブで新しい種目を追加できます。よく使う種目は★を押してお気に入りにすると、選びやすくなります。</p></div></div>
+                <div class="howto-step"><div class="howto-num">7</div><div class="howto-body"><div class="howto-title">デザインを変える</div><p>この設定画面の「テーマ」から、4種類のデザインを選べます。文字を大きくしたいときは「シンプル」がおすすめです。この使い方の画面も、選んだデザインに合わせて変わります。</p></div></div>
+            </div>
+            <button class="record-skip-btn" style="width:100%; padding:13px; margin-top:16px;" onclick="closeHowtoModal()">閉じる</button>
+        </div>
+    </div>
+
     <!-- 種目選択モーダル（カスタムピッカー） -->
     <div class="modal" id="exercisePickerModal" onclick="if(event.target === this) closeExercisePicker()">
         <div class="modal-content">
@@ -1643,6 +1675,8 @@
         // 設定モーダル・テーマ切替
         function openSettingsModal() { refreshThemeOptions(); renderRecPrefsUI(); document.getElementById('settingsModal').classList.add('open'); }
         function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+        function openHowtoModal() { document.getElementById('howtoModal').classList.add('open'); }
+        function closeHowtoModal() { document.getElementById('howtoModal').classList.remove('open'); }
         function refreshThemeOptions() {
             const t = currentTheme();
             document.querySelectorAll('[data-theme-opt]').forEach(function(b) {
