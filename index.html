@@ -1514,6 +1514,8 @@
                 <h3>⚙ 設定</h3>
                 <button class="close-modal" onclick="closeSettingsModal()">✕</button>
             </div>
+            <span class="section-label">使い方</span>
+            <button class="record-skip-btn" style="width:100%; padding:13px; margin-bottom:22px;" onclick="openHowtoModal()">📖 使い方を見る</button>
             <span class="section-label">🎨 テーマ（デザイン）</span>
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
                 <button class="theme-opt" data-theme-opt="kinetic" onclick="setTheme('kinetic')">
@@ -1550,13 +1552,11 @@
                 <button class="adjust-btn" style="min-width:52px; min-height:44px;" onclick="setWeeklyGoal(getWeeklyGoal() + 1)">＋</button>
             </div>
             </div>
-            <span class="section-label">使い方</span>
-            <button class="record-skip-btn" style="width:100%; padding:13px; margin-bottom:22px;" onclick="openHowtoModal()">📖 使い方を見る</button>
-            <span class="section-label">アカウント</span>
-            <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
-            <span class="section-label" style="margin-top:22px;">動作診断（不具合の報告用）</span>
+            <span class="section-label">動作診断（不具合の報告用）</span>
             <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="runDiagnostics()">診断を実行する</button>
             <div id="diagResult" style="font-size:0.72rem; line-height:1.7; color:var(--text-sub); white-space:pre-wrap; word-break:break-all; margin-top:10px;"></div>
+            <span class="section-label" style="margin-top:22px;">アカウント</span>
+            <button class="record-skip-btn" style="width:100%; padding:13px;" onclick="doLogout()">ログアウト</button>
         </div>
     </div>
     <!-- 使い方モーダル -->
