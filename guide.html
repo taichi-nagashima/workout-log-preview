@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="kinetic">
+<html lang="ja" data-theme="editorial">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,6 +9,7 @@
   try {
     var t = localStorage.getItem('workout_theme_v1');
     if (['kinetic', 'tactile', 'editorial', 'senior'].indexOf(t) >= 0) document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.setAttribute('data-theme', 'editorial');
   } catch (e) {}
 </script>
 <style>
@@ -271,7 +272,7 @@
   <summary>🎨 見た目と文字の大きさを変える<span class="arr">›</span></summary>
   <div class="acc-body">
     <p>設定（⚙）の「テーマ」から、4種類のデザインを選べます。</p>
-    <p style="margin-top:8px;">・<b>Kinetic Club</b>：黒×ライム。数字が大きくスポーティ<br>・<b>Tactile Hardware</b>：黒×オレンジ。計器のような見た目<br>・<b>Editorial</b>：明るい紙色×朱色。雑誌のような見た目<br>・<b>シンプル</b>：白地で文字が1.25倍。記録に必要な機能だけが表示される、いちばん迷わない表示</p>
+    <p style="margin-top:8px;">・<b>Raw Editorial Log</b>：明るい紙色×朱色。プレーンで読みやすい見た目<br>・<b>Kinetic Club</b>：黒×ライム。数字が大きくスポーティ<br>・<b>Tactile Hardware</b>：黒×オレンジ。計器のような見た目<br>・<b>シンプル</b>：白地で文字が1.25倍。記録に必要な機能だけが表示される、いちばん迷わない表示</p>
     <p style="margin-top:8px;">文字を大きくしたいときは<b>「シンプル」</b>を選んでください。このガイドの文字も連動して大きくなります。</p>
   </div>
 </details>

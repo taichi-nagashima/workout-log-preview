@@ -14,7 +14,7 @@
     <script>
         // テーマ初期化（CSS適用前に保存済みテーマを反映する）
         (function() {
-            var t = 'kinetic';
+            var t = 'editorial';
             try {
                 var saved = localStorage.getItem('workout_theme_v1');
                 if (['kinetic', 'tactile', 'editorial', 'senior'].indexOf(saved) >= 0) t = saved;
@@ -1518,6 +1518,11 @@
             <button class="record-skip-btn" style="width:100%; padding:13px; margin-bottom:22px;" onclick="openHowtoModal()">📖 使い方を見る</button>
             <span class="section-label">🎨 テーマ（デザイン）</span>
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
+                <button class="theme-opt" data-theme-opt="editorial" onclick="setTheme('editorial')">
+                    <span class="dots"><span class="dot" style="background:#eae8e1; border:1px solid #c9c6bc;"></span><span class="dot" style="background:#d9381e;"></span><span class="dot" style="background:#181816;"></span></span>
+                    <span><span class="tname">Raw Editorial Log</span><span class="tdesc">紙のトレーニング日誌風。紙色×インク黒×朱赤のライトテーマ</span></span>
+                    <span class="check">✓</span>
+                </button>
                 <button class="theme-opt" data-theme-opt="kinetic" onclick="setTheme('kinetic')">
                     <span class="dots"><span class="dot" style="background:#0a0a0b; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#ccff00;"></span><span class="dot" style="background:#ffb800;"></span></span>
                     <span><span class="tname">Kinetic Club</span><span class="tdesc">真っ黒×ボルトライム。枠線なし・極太数字のスポーツ系</span></span>
@@ -1526,11 +1531,6 @@
                 <button class="theme-opt" data-theme-opt="tactile" onclick="setTheme('tactile')">
                     <span class="dots"><span class="dot" style="background:#0a0a0b; border:1px solid #3a3a3f;"></span><span class="dot" style="background:#ff5722;"></span><span class="dot" style="background:#e5b84b;"></span></span>
                     <span><span class="tname">Tactile Hardware</span><span class="tdesc">計器・ハードウェア風。マットな黒×オレンジ、数字は等幅で液晶窓風</span></span>
-                    <span class="check">✓</span>
-                </button>
-                <button class="theme-opt" data-theme-opt="editorial" onclick="setTheme('editorial')">
-                    <span class="dots"><span class="dot" style="background:#eae8e1; border:1px solid #c9c6bc;"></span><span class="dot" style="background:#d9381e;"></span><span class="dot" style="background:#181816;"></span></span>
-                    <span><span class="tname">Raw Editorial Log</span><span class="tdesc">紙のトレーニング日誌風。紙色×インク黒×朱赤のライトテーマ</span></span>
                     <span class="check">✓</span>
                 </button>
                 <button class="theme-opt" data-theme-opt="senior" onclick="setTheme('senior')">
@@ -1619,8 +1619,8 @@
                 <div class="howto-step">
                     <div class="howto-head"><div class="howto-num">6</div><div class="howto-title">デザインを変える</div></div>
                     <div class="mock-screen">
+                        <div class="mock-theme"><span class="sw" style="background:#C23B22;"></span><span>Raw Editorial Log</span></div>
                         <div class="mock-theme"><span class="sw" style="background:#CCFF00;"></span><span>Kinetic Club</span></div>
-                        <div class="mock-theme"><span class="sw" style="background:#FF5722;"></span><span>Tactile Hardware</span></div>
                         <div class="redmark"><div class="mock-theme"><span class="sw" style="background:#1D4ED8;"></span><span>シンプル（文字が大きい）</span></div></div></div>
                     <p class="howto-cap">設定の「テーマ」から4種類のデザインを選べます。文字を大きくしたいときは「シンプル」がおすすめです。この使い方の画面も、選んだデザインに合わせて変わります。</p>
                 </div>
@@ -1810,7 +1810,7 @@
             editorial: { line: '#d9381e', pointStroke: '#f7f6f2', grid: '#d8d5cd', main: '#181816', sub: '#78756e' },
             senior:    { line: '#1d4ed8', pointStroke: '#ffffff', grid: '#ddd8c2', main: '#141414', sub: '#45453e' }
         };
-        function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'kinetic'; }
+        function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'editorial'; }
         function getCatColor(cat) {
             const m = THEME_CAT_COLORS[currentTheme()] || THEME_CAT_COLORS.kinetic;
             return m[cat] || THEME_ACCENT_FALLBACK[currentTheme()] || '#ccff00';
