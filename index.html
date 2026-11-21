@@ -1242,6 +1242,13 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+<style id="gw5-css">
+        .bodymap-wrap { position: relative; max-width: 360px; margin: 8px auto 4px; }
+        .bodymap-wrap img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--border); }
+        .bodymap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; filter: blur(6px); pointer-events: none; }
+        .bodymap-overlay ellipse { fill: var(--accent); opacity: 0.55; }
+        .bodymap-cap { position: absolute; bottom: 6px; transform: translateX(-50%); font-size: 0.68rem; color: #55524a; background: rgba(255,255,255,0.75); padding: 1px 8px; border-radius: 999px; }
+    </style>
 <style id="gw2-css">
         .sug-pill { border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-main); border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; font-variant-numeric: tabular-nums; }
         .sug-pill.reco { border-color: var(--accent); color: var(--accent); }
@@ -2664,37 +2671,36 @@
             'ローイングエルゴメーター': '全身・広背筋・脚'
         };
         function muscleMapSvg(cat) {
-            const base = 'var(--surface-muted, #e8e2d4)';
-            const hi = 'var(--accent)';
-            const st = 'var(--border)';
-            const F = (on) => on ? hi : base;
-            const front = { '胸': cat === '胸', '肩': cat === '肩', '腕': cat === '腕', '腹筋': cat === '腹筋', '脚': cat === '脚' };
-            const back = { '背中': cat === '背中', '肩': cat === '肩', '腕': cat === '腕', 'お尻': cat === 'お尻', '脚': cat === '脚' };
-            const all = cat === '有酸素';
-            const fsvg = `<svg width="62" height="124" viewBox="0 0 60 124" role="img" aria-label="前面">
-                <circle cx="30" cy="9" r="7" fill="${base}" stroke="${st}"/>
-                <path d="M20 19 L40 19 L42 54 L18 54 Z" fill="${base}" stroke="${st}"/>
-                <path d="M21 23 L39 23 L40 38 L20 38 Z" fill="${F(front['胸'] || all)}" stroke="${st}"/>
-                <rect x="24" y="40" width="12" height="12" rx="2" fill="${F(front['腹筋'] || all)}" stroke="${st}"/>
-                <circle cx="15" cy="24" r="5" fill="${F(front['肩'] || all)}" stroke="${st}"/><circle cx="45" cy="24" r="5" fill="${F(front['肩'] || all)}" stroke="${st}"/>
-                <rect x="10" y="30" width="6" height="17" rx="3" fill="${F(front['腕'] || all)}" stroke="${st}"/><rect x="44" y="30" width="6" height="17" rx="3" fill="${F(front['腕'] || all)}" stroke="${st}"/>
-                <rect x="19" y="56" width="9" height="25" rx="4" fill="${F(front['脚'] || all)}" stroke="${st}"/><rect x="32" y="56" width="9" height="25" rx="4" fill="${F(front['脚'] || all)}" stroke="${st}"/>
-                <rect x="20" y="84" width="7" height="20" rx="3" fill="${base}" stroke="${st}"/><rect x="33" y="84" width="7" height="20" rx="3" fill="${base}" stroke="${st}"/>
-            </svg>`;
-            const bsvg = `<svg width="62" height="124" viewBox="0 0 60 124" role="img" aria-label="背面">
-                <circle cx="30" cy="9" r="7" fill="${base}" stroke="${st}"/>
-                <path d="M20 19 L40 19 L42 54 L18 54 Z" fill="${base}" stroke="${st}"/>
-                <path d="M21 25 L39 25 L38 52 L22 52 Z" fill="${F(back['背中'] || all)}" stroke="${st}"/>
-                <path d="M24 18 L36 18 L39 25 L21 25 Z" fill="${F(back['背中'] || all)}" stroke="${st}"/>
-                <circle cx="15" cy="24" r="5" fill="${F(back['肩'] || all)}" stroke="${st}"/><circle cx="45" cy="24" r="5" fill="${F(back['肩'] || all)}" stroke="${st}"/>
-                <rect x="10" y="30" width="6" height="17" rx="3" fill="${F(back['腕'] || all)}" stroke="${st}"/><rect x="44" y="30" width="6" height="17" rx="3" fill="${F(back['腕'] || all)}" stroke="${st}"/>
-                <ellipse cx="24" cy="58" rx="6" ry="5" fill="${F(back['お尻'] || all)}" stroke="${st}"/><ellipse cx="36" cy="58" rx="6" ry="5" fill="${F(back['お尻'] || all)}" stroke="${st}"/>
-                <rect x="19" y="65" width="9" height="18" rx="4" fill="${F(back['脚'] || all)}" stroke="${st}"/><rect x="32" y="65" width="9" height="18" rx="4" fill="${F(back['脚'] || all)}" stroke="${st}"/>
-                <rect x="20" y="86" width="7" height="18" rx="3" fill="${F(back['脚'] || all)}" stroke="${st}"/><rect x="33" y="86" width="7" height="18" rx="3" fill="${F(back['脚'] || all)}" stroke="${st}"/>
-            </svg>`;
-            return `<div style="display:flex; gap:10px; justify-content:center; margin:6px 0 2px;">
-                <div style="text-align:center;">${fsvg}<div style="font-size:0.68rem; color:var(--text-sub);">前面</div></div>
-                <div style="text-align:center;">${bsvg}<div style="font-size:0.68rem; color:var(--text-sub);">背面</div></div>
+            const R = {
+                chest: [315, 190, 52, 32],
+                deltF: [243, 150, 26, 20], deltF2: [387, 150, 26, 20],
+                bicepL: [232, 217, 20, 37], bicepR: [398, 217, 20, 37],
+                abs: [315, 270, 36, 41],
+                quadL: [278, 457, 30, 37], quadR: [352, 457, 30, 37],
+                back: [685, 227, 62, 87],
+                deltB: [607, 155, 26, 20], deltB2: [763, 155, 26, 20],
+                tricepL: [600, 227, 20, 39], tricepR: [770, 227, 20, 39],
+                glute: [685, 373, 55, 28],
+                hamL: [643, 453, 26, 28], hamR: [727, 453, 26, 28],
+                calfL: [640, 530, 24, 37], calfR: [730, 530, 24, 37]
+            };
+            const MAP = {
+                '胸': ['chest'],
+                '背中': ['back'],
+                '肩': ['deltF', 'deltF2', 'deltB', 'deltB2'],
+                '腕': ['bicepL', 'bicepR', 'tricepL', 'tricepR'],
+                '脚': ['quadL', 'quadR', 'hamL', 'hamR', 'calfL', 'calfR'],
+                'お尻': ['glute'],
+                '腹筋': ['abs'],
+                '有酸素': Object.keys(R)
+            };
+            const keys = MAP[cat] || [];
+            const ellipses = keys.map(k => { const r = R[k]; return `<ellipse cx="${r[0]}" cy="${r[1]}" rx="${r[2]}" ry="${r[3]}"/>`; }).join('');
+            return `<div class="bodymap-wrap">
+                <img src="bodymap.webp" alt="体の図（前面・背面）">
+                <svg class="bodymap-overlay" viewBox="0 0 1000 667" preserveAspectRatio="none">${ellipses}</svg>
+                <span class="bodymap-cap" style="left:31.5%;">前面</span>
+                <span class="bodymap-cap" style="left:68.5%;">背面</span>
             </div>`;
         }
         function renderExTarget() {
