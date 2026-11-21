@@ -1252,6 +1252,15 @@
         html[data-theme="senior"] #startSheetBtn, html[data-theme="senior"] #rpeToggleBtn, html[data-theme="senior"] #timerToggleBtn { display: none !important; }
         html[data-theme="senior"] #timerWrap { display: block !important; }
     </style>
+<style id="gw8-css">
+        .ex-anim-wrap { text-align: center; margin-bottom: 10px; }
+        .ex-anim-img { width: 180px; height: 180px; border-radius: 12px; background: #fff; }
+        .ex-anim-caption { font-size: 0.68rem; color: var(--text-sub); margin-top: 4px; }
+        .howto-block { margin-top: 10px; }
+        .howto-title { font-weight: 800; margin-bottom: 6px; }
+        .howto-steps { margin: 0; padding-left: 20px; }
+        .howto-steps li { margin-bottom: 6px; line-height: 1.55; }
+    </style>
 <style id="gw5-css">
         .bodymap-wrap { position: relative; max-width: 360px; margin: 8px auto 4px; }
         .bodymap-wrap img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--border); }
@@ -2568,9 +2577,9 @@
             if (body) {
                 const ex = defaultExercises.find(e => e.name === exName);
                 const tip = EX_GUIDE[exName];
-                body.innerHTML = (ex ? muscleMapSvg(ex) : '') +
+                body.innerHTML = animHtml(exName) + (ex ? muscleMapSvg(ex) : '') +
                     `<div style="margin-bottom:4px;">効く部位: <b>${EX_MUSCLE[exName] || (ex ? ex.category : '')}</b>${ex ? ' ／ 器具: ' + ex.type : ''}</div>` +
-                    (tip ? `<div><b>やり方のコツ:</b> ${tip}</div>` : '<div style="color:var(--text-sub);">この種目のガイドは準備中です。</div>');
+                    (tip ? `<div><b>やり方のコツ:</b> ${tip}</div>` : '<div style="color:var(--text-sub);">この種目のガイドは準備中です。</div>') + howtoHtml(exName);
             }
             const ta = document.getElementById('exMemoInput');
             if (ta) ta.value = loadExMemos()[exName] || '';
@@ -2708,6 +2717,72 @@
                 if (localStorage.getItem('workout_timer_open_v1') === '1') { const w = document.getElementById('timerWrap'); if (w) w.style.display = ''; const b = document.getElementById('timerToggleBtn'); if (b) { b.innerText = '▴ 閉じる'; b.setAttribute('aria-expanded', 'true'); } }
             } catch (e) {}
             syncTimerCurrentLabel();
+        }
+
+        // ===== フォームアニメーション＋やり方（試作6種目 / ExerciseDB） =====
+        const EX_ANIM_BASE = 'https://raw.githubusercontent.com/adilzhanY/exercise-db/HEAD/media/';
+        const EX_ANIM = {
+            'ショルダープレス(マシン)': '67n3r98',
+            'レッグプレス(マシン)': '10Z2DXU',
+            'ラットプルダウン': '0MlxeMn',
+            'バーベル ベンチプレス': 'EIeI8Vf',
+            'バーベル スクワット': 'Gnfo4FM',
+            'ケーブル クロスオーバー': '0CXGHya'
+        };
+        const EX_HOWTO = {
+            'ショルダープレス(マシン)': [
+                ['準備', 'シートの高さを、グリップが耳〜肩の高さに来るよう調整する。背もたれに背中をつけ、足は床にしっかり置く。'],
+                ['動作', 'グリップを握り、真上へ押し上げる。肘は伸ばし切らず、少し手前で止める。'],
+                ['戻し', 'ゆっくり元の位置まで下ろす。耳の高さより下まで下げすぎない。'],
+                ['呼吸', '押し上げるときに吐き、下ろすときに吸う。'],
+                ['注意', '腰を反らさない。肩がすくむようなら重量を下げる。']
+            ],
+            'レッグプレス(マシン)': [
+                ['準備', 'フットプレートに足を腰幅に置く（高い位置ほどお尻・もも裏、低い位置ほどもも前に効く）。背中とお尻をシートに密着させる。'],
+                ['動作', '安全レバーを外し、膝を伸ばしてプレートを押し出す。膝は伸ばし切ってロックしない。'],
+                ['戻し', 'ゆっくり膝を曲げる。膝が90度くらいまでで止める。'],
+                ['呼吸', '押し出すときに吐き、戻すときに吸う。'],
+                ['注意', '膝が内側に入らないよう、つま先と同じ方向へ。お尻がシートから浮くほど深く曲げない。']
+            ],
+            'ラットプルダウン': [
+                ['準備', 'バーを肩幅より広く握り、太ももをパッドで固定する。胸を張って座る。'],
+                ['動作', '肩甲骨を寄せながら、バーを鎖骨〜胸の上部へ引き下げる。肘を下・後ろへ引くイメージ。'],
+                ['戻し', '腕を伸ばし切る手前までゆっくり戻し、背中の伸びを感じる。'],
+                ['呼吸', '引くときに吐き、戻すときに吸う。'],
+                ['注意', '上体を後ろに倒して反動を使わない。バーは首の後ろに引かない。']
+            ],
+            'バーベル ベンチプレス': [
+                ['準備', '目線がバーの真下に来るようベンチに寝て、バーを肩幅より少し広く握る。肩甲骨を寄せて胸を張り、足は床につける。'],
+                ['動作', 'バーをラックから外し、胸の中央（乳首の少し下）へゆっくり下ろす。'],
+                ['押す', '足で床を踏みながら、まっすぐ押し上げる。'],
+                ['呼吸', '下ろすときに吸い、押し上げるときに吐く。'],
+                ['注意', 'お尻をベンチから浮かさない。手首を反らしすぎない。重い日は補助（スポッター）を頼む。']
+            ],
+            'バーベル スクワット': [
+                ['準備', 'バーを首ではなく僧帽筋の上に担ぐ。足は肩幅、つま先はやや外向き。'],
+                ['動作', 'お尻を後ろへ引くように膝と股関節を曲げ、太ももが床と平行になるくらいまで下ろす。'],
+                ['立つ', 'かかとで床を押して立ち上がる。膝はつま先と同じ方向に保つ。'],
+                ['呼吸', '下りる前に吸ってお腹に力を入れ、立ち上がるときに吐く。'],
+                ['注意', 'かかとを浮かさない。背中を丸めない。膝が内側に入らないように。']
+            ],
+            'ケーブル クロスオーバー': [
+                ['準備', '両側のプーリーを高い位置にセットし、グリップを握って中央に立つ。一歩前に出て軽く前傾する。'],
+                ['動作', '肘を軽く曲げたまま、胸の前で両手を弧を描くように寄せる。大木を抱えるイメージ。'],
+                ['戻し', '胸のストレッチを感じながらゆっくり開く。'],
+                ['呼吸', '寄せるときに吐き、開くときに吸う。'],
+                ['注意', '肘の角度を途中で変えない。反動で振らない。']
+            ]
+        };
+        function howtoHtml(exName) {
+            const steps = EX_HOWTO[exName];
+            if (!steps) return '';
+            const lis = steps.map(s => `<li><b>${s[0]}:</b> ${s[1]}</li>`).join('');
+            return `<div class="howto-block"><div class="howto-title">📖 やり方</div><ol class="howto-steps">${lis}</ol></div>`;
+        }
+        function animHtml(exName) {
+            const id = EX_ANIM[exName];
+            if (!id) return '';
+            return `<div class="ex-anim-wrap"><img class="ex-anim-img" src="${EX_ANIM_BASE}${id}.gif" alt="${exName}のフォームアニメーション"><div class="ex-anim-caption">フォームアニメーション（出典: ExerciseDB）</div></div>`;
         }
         const EX_MUSCLE = {
             'バーベル ベンチプレス': '大胸筋', 'インクライン ベンチプレス': '大胸筋（上部）', 'デクライン ベンチプレス': '大胸筋（下部）',
