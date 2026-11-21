@@ -1242,6 +1242,15 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+<style id="gw2-css">
+        .sug-pill { border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-main); border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; font-variant-numeric: tabular-nums; }
+        .sug-pill.reco { border-color: var(--accent); color: var(--accent); }
+        .rpe-chip { border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-main); border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 0.85rem; cursor: pointer; min-height: 36px; }
+        .rpe-chip.active { background: var(--accent); color: var(--on-accent, #fff); border-color: var(--accent); }
+        .rec-bar-track { height: 8px; background: var(--surface-muted, #e5e1d8); border-radius: 999px; overflow: hidden; flex: 1; }
+        .rec-bar-fill { height: 100%; border-radius: 999px; background: var(--accent); }
+        html[data-theme="senior"] #onboardBanner, html[data-theme="senior"] #rpeRow, html[data-theme="senior"] #suggestRow, html[data-theme="senior"] #plateCalcBtn, html[data-theme="senior"] #recoveryCard, html[data-theme="senior"] #catVolCard { display: none !important; }
+    </style>
 <style id="gw1-css">
         .routine-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); margin-bottom: 8px; }
         .routine-row .rname { font-weight: 700; font-size: 0.95rem; }
@@ -1339,6 +1348,15 @@
             </div>
 
             <!-- 今日のおすすめ -->
+            <div class="card" id="onboardBanner" style="display:none; border:2px solid var(--accent);">
+                <div style="font-weight:800; margin-bottom:6px;">👋 はじめの設定</div>
+                <p style="font-size:0.88rem; line-height:1.7; margin:0 0 10px;">目標と使える器具を選ぶと、「今日のおすすめ」と「今日のメニュー自動生成」があなた用に最適化されます（設定からいつでも変更できます）。</p>
+                <div style="display:flex; gap:6px;">
+                    <button class="action-icon-btn accent" onclick="openOnboardSettings()">設定する</button>
+                    <button class="action-icon-btn" onclick="dismissOnboard()">あとで</button>
+                </div>
+            </div>
+
             <div class="card" id="recommendCard" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span class="section-label" style="margin-bottom:0;" id="recommendHeadTitle">💡 今日のおすすめ</span>
@@ -1355,6 +1373,7 @@
                 <div id="routineSessionBar" style="display:none; margin-bottom:10px;"></div>
                 <div id="routineList"></div>
                 <button class="action-icon-btn" id="routineSaveTodayBtn" style="margin-top:8px; display:none;" onclick="openRoutineEditorFromToday()">📥 今日の記録をルーティンとして保存</button>
+                <button class="action-icon-btn accent" style="margin-top:8px;" onclick="openAiMenu()">🤖 今日のメニューを自動生成</button>
             </div>
 
             <div class="card">
@@ -1374,6 +1393,7 @@
                 <div class="prev-info-bar" id="prevInfoBar">
                     前回: --kg × --回 (PR: --kg)
                 </div>
+                <div id="suggestRow" style="display:none; margin-top:8px;"></div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="section-label" id="currentSetLabel" style="margin-bottom:0;">第 1 セット</span>
@@ -1385,6 +1405,7 @@
             <div class="card">
                 <div class="input-group">
                     <span class="section-label"><span id="weightSectionLabel">重量 (WEIGHT)</span><span class="swipe-hint">⇄ 左右スワイプで調整</span></span>
+                    <button class="action-icon-btn" id="plateCalcBtn" onclick="openPlateCalc()" style="margin-bottom:8px;">🏋️ プレート計算</button>
                     <div class="input-display" id="weightSwipeArea" title="左右にスワイプで1kgずつ増減">
                         <span id="weightValue">40</span><span class="unit" id="weightUnitLabel">kg</span>
                     </div>
@@ -1434,6 +1455,12 @@
                 </div>
             </div>
 
+            <div id="rpeRow" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                <span style="font-size:0.8rem; color:var(--text-sub); font-weight:700;">きつさ (RPE)</span>
+                <span id="rpeChips" style="display:flex; gap:6px; flex-wrap:wrap;"></span>
+                <span style="font-size:0.7rem; color:var(--text-sub);">次のセット用・任意</span>
+            </div>
+
             <!-- 【要件D】メイン記録ボタン ＆ タイマースキップ即記録サブボタン -->
             <div class="record-action-row">
                 <button class="record-exec-btn" onclick="recordSet(false)">
@@ -1465,6 +1492,15 @@
 
         <!-- TAB 2: カレンダー -->
         <div id="tab-calendar" class="tab-content">
+            <div class="card" id="recoveryCard" style="margin-bottom:12px;">
+                <span class="section-label">🛌 部位別の回復度</span>
+                <div id="recoveryBody"></div>
+                <div style="font-size:0.7rem; color:var(--text-sub); margin-top:6px;">最後に鍛えてからの経過時間とセット数からの目安です。</div>
+            </div>
+            <div class="card" id="catVolCard" style="margin-bottom:12px;">
+                <span class="section-label">📊 部位別ボリューム（今週）</span>
+                <div id="catVolBody"></div>
+            </div>
             <div class="card" id="weeklyGoalCard" style="margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span class="section-label" style="margin-bottom:0;">📅 今週の目標</span>
@@ -1731,6 +1767,13 @@
                 <div id="growthChartContainer" style="width:100%; height:180px;"></div>
             </div>
 
+            <div class="card" id="exGuideCard">
+                <span class="section-label">📖 フォームガイド</span>
+                <div id="exGuideBody" style="font-size:0.88rem; line-height:1.8;"></div>
+                <span class="section-label" style="margin-top:14px;">📝 マイメモ</span>
+                <textarea id="exMemoInput" rows="2" placeholder="フォームの注意点などをメモ（この端末に保存されます）" oninput="saveExMemo()" style="width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:10px; background:var(--card-bg); color:var(--text-main); padding:10px; font-size:0.9rem;"></textarea>
+            </div>
+
             <div class="card">
                 <span class="section-label">過去の全履歴 (編集・削除可能)</span>
                 <div id="modalHistoryList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
@@ -1794,6 +1837,39 @@
     </div>
 
     <!-- モーダル4: 成果サマリーカード -->
+    <div class="modal" id="aiMenuModal" onclick="if(event.target === this) closeAiMenu()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🤖 今日のメニュー</h3>
+                <button class="close-btn" onclick="closeAiMenu()">×</button>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-sub); line-height:1.7; margin:0 0 10px;">部位の回復度・目標設定・これまでの記録から組み立てました。重量は前回の記録からの目安です。</p>
+            <div id="aiMenuBody"></div>
+            <button class="record-exec-btn" style="margin-top:14px; margin-bottom:0;" onclick="startAiMenu()">このメニューで開始する</button>
+        </div>
+    </div>
+
+    <div class="modal" id="plateModal" onclick="if(event.target === this) closePlateCalc()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏋️ プレート計算</h3>
+                <button class="close-btn" onclick="closePlateCalc()">×</button>
+            </div>
+            <span class="section-label">目標の総重量</span>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+                <input type="number" id="plateTarget" class="search-input" step="0.5" style="flex:1;">
+                <span id="plateUnit" style="font-weight:700;">kg</span>
+            </div>
+            <span class="section-label">バーの重さ</span>
+            <div style="display:flex; gap:8px; margin-bottom:14px;">
+                <button class="action-icon-btn" id="plateBarA" onclick="setPlateBar('a')"></button>
+                <button class="action-icon-btn" id="plateBarB" onclick="setPlateBar('b')"></button>
+            </div>
+            <div id="plateResult" style="font-size:0.95rem; line-height:1.9;"></div>
+            <button class="record-exec-btn" style="margin-top:14px; margin-bottom:0;" onclick="applyPlateResult()">この重量にセット</button>
+        </div>
+    </div>
+
     <div class="modal" id="routineModal" onclick="if(event.target === this) closeRoutineEditor()">
         <div class="modal-content">
             <div class="modal-header">
@@ -2144,6 +2220,374 @@
             const st = calcWeekStreak();
             el.innerText = st >= 2 ? `🔥 ${st}週連続でトレーニング中` : '';
         }
+
+
+        // ===== Gymwork Batch2: RPE / 3段階提案 / 回復度 / 部位別ボリューム / プレート計算 =====
+        const RPE_KEY = 'workout_rpe_v1';
+        let currentRpe = null;
+        function loadRpeMap() { try { return JSON.parse(localStorage.getItem(RPE_KEY)) || {}; } catch (e) { return {}; } }
+        function saveRpe(dateStr, exName, setNum, rpe) {
+            const m = loadRpeMap();
+            m[dateStr + '|' + exName + '|' + setNum] = rpe;
+            try { localStorage.setItem(RPE_KEY, JSON.stringify(m)); } catch (e) {}
+        }
+        function getRpe(dateStr, exName, setNum) { return loadRpeMap()[dateStr + '|' + exName + '|' + setNum] || null; }
+        function setRpe(v) { currentRpe = v; renderRpeChips(); }
+        function renderRpeChips() {
+            const el = document.getElementById('rpeChips');
+            if (!el) return;
+            const vals = [null, 7, 8, 9, 10];
+            el.innerHTML = vals.map(v => `<button class="rpe-chip${currentRpe === v ? ' active' : ''}" onclick="setRpe(${v === null ? 'null' : v})">${v === null ? 'なし' : 'RPE ' + v}</button>`).join('');
+        }
+        // --- 3段階提案 ---
+        function suggestStepKg(exName) { return exName.includes('ダンベル') ? 1 : 2.5; }
+        function lastSessionOf(exName) {
+            const dates = Object.keys(workoutLogs).filter(d => d !== currentDayStr && (workoutLogs[d] || []).some(s => s.exerciseName === exName)).sort();
+            if (dates.length === 0) return null;
+            const d = dates[dates.length - 1];
+            const sets = (workoutLogs[d] || []).filter(s => s.exerciseName === exName).slice().sort((a, b) => a.setNum - b.setNum);
+            return { date: d, sets };
+        }
+        function computeSuggestion(exName) {
+            const ex = defaultExercises.find(e => e.name === exName);
+            if (!ex || ex.category === '有酸素') return null;
+            const sess = lastSessionOf(exName);
+            if (!sess || sess.sets.length === 0) return null;
+            const step = suggestStepKg(exName);
+            const last = sess.sets[sess.sets.length - 1];
+            const wPrev = last.weight;
+            if (!wPrev || wPrev <= 0) return null;
+            const rpe = getRpe(sess.date, exName, last.setNum);
+            let wBase, basis;
+            if (rpe) {
+                wBase = wPrev * (1 + 0.03 * (8 - rpe));
+                basis = `前回最終セット RPE ${rpe}`;
+            } else {
+                const first = sess.sets[0];
+                if (sess.sets.length >= 2 && sess.sets.every(s => s.reps >= first.reps)) { wBase = wPrev + step; basis = '前回は回数を維持できたため増量'; }
+                else if (last.reps <= first.reps - 3) { wBase = wPrev - step; basis = '前回は回数が落ちたため軽め'; }
+                else { wBase = wPrev; basis = '前回と同重量が目安'; }
+            }
+            const roundStep = (w) => Math.max(step, Math.round(w / step) * step);
+            let normal = roundStep(wBase);
+            let easy = roundStep(wBase * 0.95);
+            let hard = roundStep(wBase * 1.05);
+            if (easy >= normal) easy = Math.max(step, normal - step);
+            if (hard <= normal) hard = normal + step;
+            return { easy, normal, hard, basis };
+        }
+        function applySuggestion(w) {
+            currentWeight = w;
+            updateDisplayValues();
+            showToast(`重量を ${fmtW(w)} にセットしました`);
+        }
+        function renderWeightSuggestion() {
+            const row = document.getElementById('suggestRow');
+            if (!row) return;
+            const exName = document.getElementById('exerciseSelect').value;
+            const s = exName ? computeSuggestion(exName) : null;
+            if (!s) { row.style.display = 'none'; row.innerHTML = ''; return; }
+            row.style.display = '';
+            row.innerHTML = `<div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:5px;">次回の目安（${s.basis}）タップでセット</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="sug-pill" onclick="applySuggestion(${s.easy})">簡単 ${fmtW(s.easy)}</button>
+                    <button class="sug-pill reco" onclick="applySuggestion(${s.normal})">普通 ${fmtW(s.normal)}</button>
+                    <button class="sug-pill" onclick="applySuggestion(${s.hard})">難しい ${fmtW(s.hard)}</button>
+                </div>`;
+        }
+        // --- 回復度 ---
+        const RECOVERY_BASE = { '胸': 72, '背中': 72, '脚': 72, '肩': 48, 'お尻': 48, '腕': 36, '腹筋': 24 };
+        function categoryLastTraining(cat) {
+            let best = null;
+            Object.keys(workoutLogs).forEach(d => {
+                const sets = (workoutLogs[d] || []).filter(s => { const o = defaultExercises.find(e => e.name === s.exerciseName); return o && o.category === cat; });
+                if (sets.length === 0) return;
+                const sess = loadSessions()[d];
+                const endTs = sess ? sess.end : new Date(d + 'T21:00:00').getTime();
+                if (!best || endTs > best.endTs) best = { date: d, endTs, sets: sets.length, exNames: sets.map(s => s.exerciseName), setNums: sets.map(s => s.setNum) };
+            });
+            return best;
+        }
+        function recoveryPct(cat) {
+            const last = categoryLastTraining(cat);
+            if (!last) return { pct: 100, trained: false };
+            const tbase = RECOVERY_BASE[cat] || 48;
+            const kvol = last.sets <= 3 ? 0.85 : (last.sets <= 8 ? 1.0 : 1.2);
+            const rpes = last.exNames.map((n, i) => getRpe(last.date, n, last.setNums[i])).filter(v => v);
+            let krpe = 1.0;
+            if (rpes.length) { const avg = rpes.reduce((a, b) => a + b, 0) / rpes.length; krpe = avg < 7 ? 0.9 : (avg <= 8.5 ? 1.0 : 1.15); }
+            const elapsedH = (Date.now() - last.endTs) / 3600000;
+            return { pct: Math.max(0, Math.min(100, Math.round(elapsedH / (tbase * kvol * krpe) * 100))), trained: true, date: last.date };
+        }
+        function renderRecovery() {
+            const el = document.getElementById('recoveryBody');
+            if (!el) return;
+            el.innerHTML = Object.keys(RECOVERY_BASE).map(cat => {
+                const r = recoveryPct(cat);
+                const label = !r.trained ? '未実施' : (r.pct >= 100 ? '回復済み' : '回復 ' + r.pct + '%');
+                return `<div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">
+                    <span style="width:3em; font-weight:700; font-size:0.85rem;">${cat}</span>
+                    <div class="rec-bar-track"><div class="rec-bar-fill" style="width:${r.pct}%;"></div></div>
+                    <span style="font-size:0.78rem; color:var(--text-sub); width:5.5em; text-align:right; font-variant-numeric:tabular-nums;">${label}</span>
+                </div>`;
+            }).join('');
+        }
+        // --- 部位別ボリューム（今週 vs 先週） ---
+        function weekRange(offsetWeeks) {
+            const base = new Date(getRealTodayStr() + 'T00:00:00');
+            base.setDate(base.getDate() - base.getDay() + offsetWeeks * 7);
+            const fmtD = (x) => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+            const days = [];
+            for (let i = 0; i < 7; i++) { const d = new Date(base); d.setDate(d.getDate() + i); days.push(fmtD(d)); }
+            return days;
+        }
+        function categoryVolume(days) {
+            const vol = {};
+            days.forEach(d => (workoutLogs[d] || []).forEach(s => {
+                const o = defaultExercises.find(e => e.name === s.exerciseName);
+                if (!o || o.category === '有酸素') return;
+                vol[o.category] = (vol[o.category] || 0) + s.weight * s.reps;
+            }));
+            return vol;
+        }
+        function renderCategoryVolume() {
+            const el = document.getElementById('catVolBody');
+            if (!el) return;
+            const cur = categoryVolume(weekRange(0));
+            const prev = categoryVolume(weekRange(-1));
+            const cats = Object.keys(RECOVERY_BASE);
+            const max = Math.max(1, ...cats.map(c => cur[c] || 0));
+            el.innerHTML = cats.map(cat => {
+                const v = cur[cat] || 0;
+                const p = prev[cat] || 0;
+                let diff = '';
+                if (v > 0 && p > 0) { const pc = Math.round((v - p) / p * 100); diff = ` <span style="color:var(--text-sub);">先週比 ${pc >= 0 ? '+' : ''}${pc}%</span>`; }
+                else if (v > 0 && p === 0) diff = ' <span style="color:var(--text-sub);">先週はなし</span>';
+                return `<div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">
+                    <span style="width:3em; font-weight:700; font-size:0.85rem;">${cat}</span>
+                    <div class="rec-bar-track"><div class="rec-bar-fill" style="width:${Math.round(v / max * 100)}%;"></div></div>
+                    <span style="font-size:0.78rem; font-variant-numeric:tabular-nums;">${v > 0 ? dispVol(v).toLocaleString() + ' ' + wUnitPref() : '—'}${diff}</span>
+                </div>`;
+            }).join('');
+        }
+        // --- プレート計算 ---
+        let plateBarKg = 20, plateActualKg = 0;
+        function plateConfig() {
+            if (isLbUnit()) return { plates: [45, 35, 25, 10, 5, 2.5], bars: [45, 35], unit: 'lb' };
+            return { plates: [25, 20, 15, 10, 5, 2.5, 1.25], bars: [20, 15], unit: 'kg' };
+        }
+        function openPlateCalc() {
+            const cfg = plateConfig();
+            plateBarKg = cfg.bars[0];
+            document.getElementById('plateUnit').innerText = cfg.unit;
+            document.getElementById('plateTarget').value = isLbUnit() ? dispW(currentWeight) : currentWeight;
+            document.getElementById('plateBarA').innerText = 'バー ' + cfg.bars[0] + cfg.unit;
+            document.getElementById('plateBarB').innerText = 'バー ' + cfg.bars[1] + cfg.unit;
+            calcPlates();
+            document.getElementById('plateModal').classList.add('open');
+        }
+        function closePlateCalc() { document.getElementById('plateModal').classList.remove('open'); }
+        function setPlateBar(which) {
+            const cfg = plateConfig();
+            plateBarKg = which === 'a' ? cfg.bars[0] : cfg.bars[1];
+            calcPlates();
+        }
+        function calcPlates() {
+            const cfg = plateConfig();
+            const target = parseFloat(document.getElementById('plateTarget').value) || 0;
+            let perSide = (target - plateBarKg) / 2;
+            const used = [];
+            if (perSide > 0) {
+                cfg.plates.forEach(p => { while (perSide >= p - 1e-9) { used.push(p); perSide = parseFloat((perSide - p).toFixed(3)); } });
+            }
+            const usedSum = used.reduce((a, b) => a + b, 0);
+            const actualDisp = plateBarKg + usedSum * 2;
+            plateActualKg = isLbUnit() ? actualDisp / 2.20462 : actualDisp;
+            const el = document.getElementById('plateResult');
+            if (target <= plateBarKg) { el.innerHTML = `バー（${plateBarKg}${cfg.unit}）だけの重さ以下です。`; return; }
+            el.innerHTML = `片側に付けるプレート:<br><b style="font-size:1.1rem;">${used.length ? used.join(' + ') : 'なし'} ${cfg.unit}</b><br>実際の総重量: <b>${actualDisp}${cfg.unit}</b>${Math.abs(actualDisp - target) > 0.01 ? `（目標 ${target}${cfg.unit} に最も近い組み合わせ）` : ''}`;
+        }
+        function applyPlateResult() {
+            if (plateActualKg > 0) { currentWeight = parseFloat(plateActualKg.toFixed(2)); updateDisplayValues(); }
+            closePlateCalc();
+            showToast('重量をセットしました');
+        }
+
+
+        // ===== Gymwork Batch3: AIメニュー生成 / 種目ガイド / メモ / オンボーディング =====
+        const EX_GUIDE = {
+            'バーベル ベンチプレス': '肩甲骨を寄せて胸を張り、バーを胸の下部へ。足裏全体で床を押す意識で押し上げる。',
+            'インクライン ベンチプレス': 'ベンチは30度前後。バーを鎖骨の下あたりへ下ろし、胸の上部を意識して押し上げる。',
+            'デクライン ベンチプレス': '頭側を下げた角度で胸の下部を狙う。バーは胸の下部へ、手首は真っすぐ保つ。',
+            'ダンベルプレス': 'ダンベルを胸の横まで下ろし、肘は肩より少し下。左右差が出ないよう同じ軌道で押す。',
+            'インクライン ダンベルプレス': '30度前後の角度で胸の上部へ。ダンベル同士をぶつけず、真上に押し上げる。',
+            'スミスマシン ベンチプレス': 'バーの軌道に体を合わせ、胸の下部にバーが来る位置にベンチをセット。手首を寝かせない。',
+            'スミスマシン インクラインプレス': '角度30度前後。バーの下ろし位置が鎖骨下に来るようベンチ位置を調整する。',
+            'チェストプレス(マシン)': 'グリップが胸の中央の高さに来るようシートを調整。肩が前に出ないよう胸を張って押す。',
+            'プレートロード式 チェストプレス': 'シート高はグリップが胸の中央。押すときに肘を伸ばし切らず、胸の収縮を感じる。',
+            'ダンベル フライ': '肘を軽く曲げて固定し、大きな円を描くように開く。肩の高さより深く下ろしすぎない。',
+            'ペックフライ': '肘のパッドor腕を胸の高さに合わせ、胸の前で閉じる。戻すときはゆっくり。',
+            'ケーブル クロスオーバー': 'やや前傾で立ち、胸の前で手を交差させるイメージで閉じる。肩が上がらないよう注意。',
+            'ディップス': '体を少し前傾させると胸、垂直だと三頭寄り。肩がすくまない深さまで下ろす。',
+            'プッシュアップ': '頭から踵まで一直線。手は胸の横、肘は45度ほどに開いて下ろす。',
+            'スタンディング マルチ フライト': 'マシンの軌道に沿って胸を開閉。肩関節が痛む角度では行わない。',
+            'ラットプルダウン': '胸を張り、バーを鎖骨の前へ引く。体を大きく後ろへ倒して反動を使わない。',
+            'プレートロード式ラットプルダウン': '胸を張って肘を背中側へ引く。肩が上がらないよう、まず肩甲骨を下げる。',
+            'リバースグリップ ラットプルダウン': '逆手で握り、肘を体側に沿わせて引く。二頭にも効くので肘の固定を意識。',
+            'チンニング(懸垂)': '肩甲骨を下げてから肘を引く。反動を使わず、顎がバーを越えるまで。',
+            'アシスト チンニング': '補助重量は「引けるギリギリ」に設定。体を一直線に保ち、肩甲骨から動かす。',
+            'シーテッド ロー': '胸を張り、肘を後ろへ引いて肩甲骨を寄せる。上体を前後に大きく揺らさない。',
+            'ケーブル シーテッドローイング': 'ケーブル版も同じく肩甲骨の寄せが要。戻すときは背中を丸めずゆっくり。',
+            'ベントオーバー バーベルローイング': '股関節から前傾し、背中は真っすぐ。バーを下腹部へ引く。腰が丸まる重量は避ける。',
+            'Tバー ローイング': '胸を張り前傾姿勢を保つ。肘を後ろへ引き、肩甲骨を寄せ切る。',
+            'ワンハンド ダンベル ローイング': 'ベンチに片膝と片手を置き、背中は水平。ダンベルを腰の横へ引く。',
+            'デッドリフト': 'バーをすねに沿わせ、背中を真っすぐに保って股関節の伸展で立つ。腰で引かない。',
+            'ルーマニアン デッドリフト (RDL)': '膝は軽く曲げて固定し、お尻を後ろへ引いてハムの伸びを感じる範囲で下ろす。',
+            'ストレートアーム プルダウン': '肘を軽く曲げて固定し、腕を円弧に下ろす。広背筋の伸びと収縮を感じる。',
+            'バックエクステンション': '反りすぎず、背中と臀部で体を持ち上げる。勢いをつけずゆっくり。',
+            'ダンベル シュラッグ': '肩を耳に近づけるように真上にすくめる。首をすくめすぎず僧帽筋を意識。',
+            'ケーブル フェイスプル': 'ロープを顔の高さへ引き、肘は高く保つ。肩の後ろと背中上部を意識。',
+            'ダンベル ショルダープレス': 'ダンベルを耳の高さから真上へ。腰を反らさず、お腹に力を入れる。',
+            'スミスマシン ショルダープレス': 'バーの軌道の真下に座り、顔の前を通して真上へ押す。腰の反りに注意。',
+            'ショルダープレス(マシン)': 'グリップが耳の高さに来るようシート調整。真上に押し上げ、肘を伸ばし切らない。',
+            'プレートロード ショルダープレス': 'シート高を調整し、真上に押す。肩がすくまないよう下げてから押す。',
+            'アーノルドプレス': '手のひらを自分側から正面へ回しながら押し上げる。回す動作はゆっくり。',
+            'ダンベル サイドレイズ': '肘を軽く曲げ、肩の高さまで横に上げる。小指側を少し上にするイメージ。反動は使わない。',
+            'ケーブル サイドレイズ': 'ケーブルを体の後ろから引くと伸張感が増す。肩の高さまで、ゆっくり下ろす。',
+            'ダンベル フロントレイズ': '肩の高さまで前方へ上げる。体を反らして反動を使わない。',
+            'ダンベル リア レイズ': '前傾姿勢で肘を軽く曲げ、横後ろへ開く。肩甲骨を寄せすぎず肩の後ろを意識。',
+            'リアデルト (マシン)': '胸をパッドに当て、腕を後ろへ開く。肘の高さを肩と揃える。',
+            'アップライトロー': 'バーを体の近くで顎の下まで引き上げる。肘が手より高い位置に来るよう。肩が痛む場合は中止。',
+            'バイセップスカール': '肘を体側に固定し、前腕だけを動かす。体を揺らして反動を使わない。',
+            'バーベル カール': '肘を固定し、バーを円弧で持ち上げる。下ろすときもゆっくり。',
+            'EZバー カール': 'EZバーの角度に沿って握ると手首が楽。肘は体側に固定。',
+            'インクライン ダンベルカール': 'ベンチにもたれて腕を垂らし、二頭の伸びを感じてから巻き上げる。',
+            'ハンマーカール': '手のひらを内側に向けたまま巻き上げる。前腕と二頭の外側に効く。',
+            'プリーチャーカール': '上腕をパッドに密着させ、肘を支点に巻き上げる。反動が使えない分、丁寧に。',
+            'ケーブル カール': '肘を固定し、ケーブルの張力を保ったまま巻き上げる。頂点で一瞬止める。',
+            'コンセントレーション カール': '肘を太ももの内側に当て、反対側へ逃がさず巻き上げる。',
+            'ケーブル プレスダウン': '肘を体側に固定し、押し下げ切って三頭を収縮させる。上体はやや前傾。',
+            'スカルクラッシャー': '肘を真上に向け固定し、バーを額の上へ下ろす。肘が開かないよう注意。',
+            'オーバーヘッド トライセプスエクステンション': '肘を耳の横に固定し、頭の後ろから真上へ伸ばす。腰を反らさない。',
+            'ダンベル フレンチプレス': '両手でダンベルを持ち、肘を固定して頭の後ろへ下ろす。',
+            'ナローグリップ ベンチプレス': '握りは肩幅程度。肘を体側に沿わせて押し、三頭を意識する。',
+            'バーベル スクワット': '足は肩幅、つま先やや外。胸を張り、膝とつま先の向きを揃えてしゃがむ。踵重心。',
+            'スミスマシン スクワット': '足位置をやや前に置くと軌道に合う。背中を真っすぐに保ち、膝の向きに注意。',
+            'ワイド スクワット': '足を広めに開き、内ももと臀部を意識。膝はつま先と同じ向きへ。',
+            'ハックスクワット': '背中をパッドに密着させ、膝が内側に入らないよう押す。',
+            'ゴブレット スクワット': 'ダンベルを胸の前で抱え、肘を膝の内側へ。姿勢の練習にもなる。',
+            'レッグプレス(マシン)': '足裏全体で押す。膝を伸ばし切ってロックしない。腰が丸まる深さは避ける。',
+            'レッグエクステンション': '膝を支点に伸ばし切って四頭筋を収縮。戻すときはゆっくり。',
+            'シーテッド レッグカール': '膝を支点に踵をお尻へ近づける。腰が浮かないよう固定。',
+            'ライイング レッグカール': 'うつ伏せで踵をお尻へ。腰を反らさず、ハムの収縮を感じる。',
+            'ダンベル ランジ': '一歩踏み出し、両膝を曲げて真下に下りる。上体は垂直に保つ。',
+            'ブルガリアン スクワット': '後ろ足をベンチに乗せ、前脚で下りる。前脚の膝が内側に入らないよう。',
+            'スタンディング カーフレイズ': 'つま先で台に乗り、踵を深く下ろしてから最大限上げる。反動なしで。',
+            'バーベル ヒップスラスト': '肩甲骨をベンチに乗せ、バーを骨盤に当てる。お尻を締めながら腰を上げる。',
+            'ヒップアブダクション (アウターサイ)': '脚を外側へ開き、臀部の中部を意識。上体を固定して反動を使わない。',
+            'ヒアダクション (インナーサイ)': '脚を内側へ閉じ、内ももを意識。ゆっくり開いて戻す。',
+            'グルートドライブ (マシン)': 'パッドを骨盤に当て、臀部で押し上げる。頂点でお尻を締める。',
+            'ケーブル キックバック': '体幹を固定し、脚を後ろへ蹴って臀部を収縮。腰を反らさない。',
+            'アブドミナル': 'マシンで体幹を丸めるように収縮。首で引かず腹筋で動かす。',
+            'アブローラー': '腰を反らさず、お腹に力を入れたまま前に伸ばし、腹筋で引き戻す。',
+            'ハンギング レッグレイズ': '体を揺らさず、骨盤を丸めるように脚を上げる。反動は使わない。',
+            'ケーブル クランチ': '膝立ちで体幹を丸め、腹筋で引き下ろす。腕で引かない。',
+            'トーソローテーション': '骨盤を固定し、体幹を回旋させる。勢いではなく腹斜筋で動かす。',
+            'プランク': '頭から踵まで一直線。お尻を締め、腰を反らさず呼吸を続ける。',
+            '傾斜ウォーキング (インクライン)': '傾斜をつけて大股で歩く。手すりに体重を預けすぎない。',
+            'トレッドミル (ランニング・ジョギング)': '姿勢を保ち、着地は体の真下。無理のないペースから。',
+            'エアロバイク (アップライト)': 'サドルは膝が軽く曲がる高さ。背筋を伸ばして漕ぐ。',
+            'スピンバイク': '負荷と回転数のバランスを取る。立ち漕ぎでは体幹を安定させる。',
+            'クロストレーナー (エリプティカル)': '踵を浮かせず、全身を連動させて動かす。',
+            'ステアマスター (階段昇降)': '手すりに頼りすぎず、一段ずつ確実に踏む。',
+            'ローイングエルゴメーター': '脚で押す→体幹→腕で引く順序。背中を丸めずに引く。'
+        };
+        const EX_MEMO_KEY = 'workout_ex_memo_v1';
+        function loadExMemos() { try { return JSON.parse(localStorage.getItem(EX_MEMO_KEY)) || {}; } catch (e) { return {}; } }
+        function saveExMemo() {
+            const ta = document.getElementById('exMemoInput');
+            if (!ta || !currentDetailExName) return;
+            const m = loadExMemos();
+            m[currentDetailExName] = ta.value;
+            try { localStorage.setItem(EX_MEMO_KEY, JSON.stringify(m)); } catch (e) {}
+        }
+        function renderExGuide(exName) {
+            const body = document.getElementById('exGuideBody');
+            if (body) {
+                const ex = defaultExercises.find(e => e.name === exName);
+                const tip = EX_GUIDE[exName];
+                body.innerHTML = `<div style="margin-bottom:4px;">対象: <b>${ex ? ex.category : ''}</b>${ex ? ' · ' + ex.type : ''}</div>` +
+                    (tip ? `<div>${tip}</div>` : '<div style="color:var(--text-sub);">この種目のガイドは準備中です。</div>');
+            }
+            const ta = document.getElementById('exMemoInput');
+            if (ta) ta.value = loadExMemos()[exName] || '';
+        }
+        // --- AIメニュー生成 ---
+        let aiMenuItems = [];
+        function generateAiMenu() {
+            const prefs = getRecPrefs();
+            const weights = GOAL_WEIGHTS[prefs.goal] || {};
+            const stats = computeCategoryStats();
+            const today = getRealTodayStr();
+            const scored = Object.keys(RECOVERY_BASE).map(cat => {
+                const rec = recoveryPct(cat).pct;
+                const restDays = stats.lastByCat[cat] ? daysBetweenStr(stats.lastByCat[cat], today) : 30;
+                return { cat, rec, score: rec * (weights[cat] || 1) + Math.min(restDays, 14) };
+            }).sort((a, b) => b.score - a.score);
+            let targets = scored.filter(c => c.rec >= 50).slice(0, 2);
+            let light = false;
+            if (targets.length === 0) { targets = scored.slice(0, 1); light = true; }
+            const health = prefs.goal === 'health';
+            const items = [];
+            targets.forEach((t, ci) => {
+                const picks = pickExercisesForCategory(t.cat, stats).slice(0, ci === 0 ? 3 : 2);
+                picks.forEach((p, i) => {
+                    const main = i === 0;
+                    items.push({
+                        name: p.ex.name,
+                        sets: light ? 2 : (health ? 2 : 3),
+                        reps: main ? (health ? 12 : 8) : 12,
+                        rest: main ? 120 : 60,
+                        sugW: (computeSuggestion(p.ex.name) || {}).normal || null,
+                        cat: t.cat
+                    });
+                });
+            });
+            return { items, targets: targets.map(t => t.cat), light };
+        }
+        function openAiMenu() {
+            const gen = generateAiMenu();
+            aiMenuItems = gen.items;
+            const body = document.getElementById('aiMenuBody');
+            body.innerHTML = `<div style="font-size:0.85rem; margin-bottom:8px;">対象部位: <b>${gen.targets.join('・')}</b>${gen.light ? '（全部位が回復途中のため軽めの構成です）' : ''}</div>` +
+                gen.items.map(it => `<div style="display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid var(--border);">
+                    <span style="font-weight:700;">${it.name}</span>
+                    <span style="font-variant-numeric:tabular-nums; white-space:nowrap;">${it.sets}セット × ${it.reps}回${it.sugW ? ' · 目安 ' + fmtW(it.sugW) : ''}</span>
+                </div>`).join('');
+            document.getElementById('aiMenuModal').classList.add('open');
+        }
+        function closeAiMenu() { document.getElementById('aiMenuModal').classList.remove('open'); }
+        function startAiMenu() {
+            if (aiMenuItems.length === 0) return;
+            const rs = loadRoutines();
+            const id = 'r_ai_' + Date.now();
+            const d = new Date();
+            rs.push({ id, name: `今日のメニュー ${d.getMonth() + 1}/${d.getDate()}`, items: aiMenuItems.map(it => ({ name: it.name, sets: it.sets, reps: it.reps, rest: it.rest })) });
+            saveRoutines(rs);
+            closeAiMenu();
+            renderRoutineList();
+            startRoutine(id);
+        }
+        // --- オンボーディング ---
+        function checkOnboard() {
+            const b = document.getElementById('onboardBanner');
+            if (!b) return;
+            let done = false;
+            try { done = !!localStorage.getItem('workout_onboarded_v1'); } catch (e) {}
+            b.style.display = done ? 'none' : '';
+        }
+        function dismissOnboard() { try { localStorage.setItem('workout_onboarded_v1', '1'); } catch (e) {} checkOnboard(); }
+        function openOnboardSettings() { dismissOnboard(); openSettingsModal(); }
 
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'editorial'; }
         function getCatColor(cat) {
@@ -2659,6 +3103,8 @@
             applyHowtoUnit();
             renderRoutineList();
             renderStreak();
+            renderRpeChips();
+            checkOnboard();
             onExerciseChange();
             renderCalendar();
             renderMasterList();
@@ -3369,6 +3815,16 @@
                 nameSpan.textContent = opt.textContent;
                 nameSpan.style.cssText = 'font-size:0.98rem;' + (opt.value === current ? 'font-weight:bold; color:var(--accent);' : '');
                 b.appendChild(nameSpan);
+                const lastByEx = computeCategoryStats().lastByEx;
+                const ld = lastByEx[opt.value];
+                if (ld) {
+                    const dd = daysBetweenStr(ld, getRealTodayStr());
+                    const lbl = dd === 0 ? '今日実施' : dd === 1 ? '昨日' : dd + '日前';
+                    const ls = document.createElement('span');
+                    ls.textContent = lbl;
+                    ls.style.cssText = 'font-size:0.72rem; color:var(--text-sub); margin-left:8px;';
+                    b.appendChild(ls);
+                }
                 if (opt.value === current) {
                     const chk = document.createElement('span');
                     chk.textContent = '✓';
@@ -3411,6 +3867,7 @@
 
             applySetPrediction(exName, currentSetNum);
             renderTodaySets();
+            renderWeightSuggestion();
         }
 
         function updateDisplayValues() {
@@ -3507,6 +3964,8 @@
             touchSession(currentDayStr);
             renderRoutineSession();
             renderRoutineList();
+            if (currentRpe) { saveRpe(currentDayStr, exName, recordedSetNum, currentRpe); currentRpe = null; renderRpeChips(); }
+            renderWeightSuggestion();
 
             if (!skipTimer) {
                 startTimerCountdown(currentTimerSec);
@@ -4032,6 +4491,8 @@
             document.getElementById('statDays').innerText = activeDays + '日';
             document.getElementById('statVolume').innerText = dispVol(totalVol).toLocaleString() + ' ' + wUnitPref();
             renderStreak();
+            renderRecovery();
+            renderCategoryVolume();
 
             renderSelectedDateLog(currentDayStr);
         }
@@ -4272,6 +4733,7 @@
             document.getElementById('modalHistoryList').innerHTML = historyHtml || '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:12px;">履歴がまだありません</div>';
 
             renderGrowthChartSvg(exName);
+            renderExGuide(exName);
             document.getElementById('exerciseModal').classList.add('open');
         }
 
