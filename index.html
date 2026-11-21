@@ -1242,6 +1242,16 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+<style id="gw7-css">
+        #onboardBanner { display: none !important; }
+        #exTargetLine { display: none !important; }
+        #plateCalcBtn { font-size: 0.78rem; padding: 5px 10px; margin-bottom: 6px; }
+        .start-sheet-btn { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 12px; border: 2px solid var(--accent); background: var(--card-bg); color: var(--text); font-weight: 800; font-size: 0.92rem; cursor: pointer; }
+        .detail-toggle-btn { background: none; border: none; color: var(--text-sub); font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 4px 2px; margin-bottom: 8px; }
+        #startSheet .card { margin-bottom: 12px; }
+        html[data-theme="senior"] #startSheetBtn, html[data-theme="senior"] #rpeToggleBtn, html[data-theme="senior"] #timerToggleBtn { display: none !important; }
+        html[data-theme="senior"] #timerWrap { display: block !important; }
+    </style>
 <style id="gw5-css">
         .bodymap-wrap { position: relative; max-width: 360px; margin: 8px auto 4px; }
         .bodymap-wrap img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--border); }
@@ -1355,6 +1365,8 @@
                 <button class="cat-btn" onclick="filterWorkoutCat('有酸素')">有酸素</button>
             </div>
 
+            <button id="startSheetBtn" class="start-sheet-btn" onclick="openStartSheet()">🏁 今日のトレーニング（おすすめ・ルーティン）</button>
+
             <!-- 今日のおすすめ -->
             <div class="card" id="onboardBanner" style="display:none; border:2px solid var(--accent);">
                 <div style="font-weight:800; margin-bottom:6px;">👋 はじめの設定</div>
@@ -1458,8 +1470,12 @@
             </div>
 
             <!-- タイマー設定 -->
-            <div class="card">
-                <span class="section-label">休憩タイマー設定 (記録時に画面上部で自動カウントダウン)</span>
+            <div class="card" id="timerCard">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="section-label" style="margin-bottom:0;">休憩タイマー設定 <span id="timerCurrentLabel" style="color:var(--accent);"></span></span>
+                    <button class="action-icon-btn" id="timerToggleBtn" onclick="toggleTimerCard()" aria-expanded="false">▾ 開く</button>
+                </div>
+                <div id="timerWrap" style="display:none; margin-top:10px;">
                 <div class="timer-options" id="timerOptions">
                     <div class="timer-btn" onclick="setTimer(30)">30s</div>
                     <div class="timer-btn" onclick="setTimer(60)">60s</div>
@@ -1467,9 +1483,11 @@
                     <div class="timer-btn" onclick="setTimer(120)">120s</div>
                     <div class="timer-btn" onclick="setTimer(180)">180s</div>
                 </div>
+                </div>
             </div>
 
-            <div id="rpeRow" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <button id="rpeToggleBtn" class="detail-toggle-btn" onclick="toggleRpeRow()">＋ 詳細（きつさ RPE）</button>
+            <div id="rpeRow" style="display:none; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
                 <span style="font-size:0.8rem; color:var(--text-sub); font-weight:700;">きつさ (RPE)</span>
                 <span id="rpeChips" style="display:flex; gap:6px; flex-wrap:wrap;"></span>
                 <span style="font-size:0.7rem; color:var(--text-sub);">次のセット用・任意</span>
@@ -1873,6 +1891,15 @@
         </div>
     </div>
 
+    <div class="modal" id="startSheet" onclick="if(event.target === this) closeStartSheet()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏁 今日のトレーニング</h3>
+                <button class="close-btn" onclick="closeStartSheet()">×</button>
+            </div>
+            <div id="startSheetBody"></div>
+        </div>
+    </div>
     <div class="modal" id="plateModal" onclick="if(event.target === this) closePlateCalc()">
         <div class="modal-content">
             <div class="modal-header">
@@ -2095,6 +2122,7 @@
         // --- ルーティン実行 ---
         let activeRoutine = null;
         function startRoutine(id) {
+            closeStartSheet();
             const r = allRoutines().find(x => x.id === id);
             if (!r || r.items.length === 0) return;
             activeRoutine = { id: r.id, name: r.name, idx: 0, items: r.items };
@@ -2631,11 +2659,55 @@
                 const body = document.getElementById(map[k][0]);
                 const btn = document.getElementById(map[k][1]);
                 if (!body || !btn) return;
-                const closed = !!m[k];
+                const defaults = { recovery: true, catVol: true };
+                const closed = (k in m) ? !!m[k] : !!defaults[k];
                 body.style.display = closed ? 'none' : '';
                 btn.innerText = closed ? '▾ 開く' : '▴ 閉じる';
                 btn.setAttribute('aria-expanded', closed ? 'false' : 'true');
             });
+        }
+
+        // ===== 引き算ステップ1: 移動と折りたたみ =====
+        function openStartSheet() { document.getElementById('startSheet').classList.add('open'); }
+        function closeStartSheet() { const s = document.getElementById('startSheet'); if (s) s.classList.remove('open'); }
+        function moveToStartSheet() {
+            const sheet = document.getElementById('startSheetBody');
+            const rec = document.getElementById('recommendCard');
+            const rou = document.getElementById('routineCard');
+            if (sheet && rec) sheet.appendChild(rec);
+            if (sheet && rou) sheet.appendChild(rou);
+            const sb = document.getElementById('routineSessionBar');
+            const btn = document.getElementById('startSheetBtn');
+            if (sb && btn) btn.after(sb);
+            const sum = document.querySelector('.summary-banner-btn');
+            const cv = document.getElementById('catVolCard');
+            if (sum && cv) cv.after(sum);
+        }
+        function toggleRpeRow() {
+            const row = document.getElementById('rpeRow');
+            const btn = document.getElementById('rpeToggleBtn');
+            if (!row) return;
+            const open = row.style.display === 'none';
+            row.style.display = open ? 'flex' : 'none';
+            if (btn) btn.innerText = open ? '− 詳細（きつさ RPE）を閉じる' : '＋ 詳細（きつさ RPE）';
+            try { localStorage.setItem('workout_rpe_open_v1', open ? '1' : ''); } catch (e) {}
+        }
+        function toggleTimerCard() {
+            const wrap = document.getElementById('timerWrap');
+            const btn = document.getElementById('timerToggleBtn');
+            if (!wrap) return;
+            const open = wrap.style.display === 'none';
+            wrap.style.display = open ? '' : 'none';
+            if (btn) { btn.innerText = open ? '▴ 閉じる' : '▾ 開く'; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+            try { localStorage.setItem('workout_timer_open_v1', open ? '1' : ''); } catch (e) {}
+        }
+        function syncTimerCurrentLabel() { const el = document.getElementById('timerCurrentLabel'); if (el) el.innerText = '（現在 ' + currentTimerSec + '秒）'; }
+        function applyStep1State() {
+            try {
+                if (localStorage.getItem('workout_rpe_open_v1') === '1') { const r = document.getElementById('rpeRow'); if (r) r.style.display = 'flex'; const b = document.getElementById('rpeToggleBtn'); if (b) b.innerText = '− 詳細（きつさ RPE）を閉じる'; }
+                if (localStorage.getItem('workout_timer_open_v1') === '1') { const w = document.getElementById('timerWrap'); if (w) w.style.display = ''; const b = document.getElementById('timerToggleBtn'); if (b) { b.innerText = '▴ 閉じる'; b.setAttribute('aria-expanded', 'true'); } }
+            } catch (e) {}
+            syncTimerCurrentLabel();
         }
         const EX_MUSCLE = {
             'バーベル ベンチプレス': '大胸筋', 'インクライン ベンチプレス': '大胸筋（上部）', 'デクライン ベンチプレス': '大胸筋（下部）',
@@ -3260,6 +3332,8 @@
             renderRoutineList();
             renderStreak();
             renderRpeChips();
+            moveToStartSheet();
+            applyStep1State();
             checkOnboard();
             applyCardCollapse();
             onExerciseChange();
@@ -4060,6 +4134,7 @@
 
         function setTimer(sec) {
             currentTimerSec = sec;
+            syncTimerCurrentLabel();
             document.querySelectorAll('.timer-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.innerText === (sec + 's'));
             });
