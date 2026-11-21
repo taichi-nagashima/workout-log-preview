@@ -1242,6 +1242,16 @@
         html[data-theme="editorial"] .action-icon-btn { background: var(--card-bg); }
         html[data-theme="editorial"] .set-item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
     </style>
+<style id="gw1-css">
+        .routine-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); margin-bottom: 8px; }
+        .routine-row .rname { font-weight: 700; font-size: 0.95rem; }
+        .routine-row .rmeta { font-size: 0.75rem; color: var(--text-sub); }
+        .routine-session { border: 2px solid var(--accent); border-radius: 12px; padding: 10px 12px; }
+        .routine-item-row { display: flex; gap: 6px; align-items: center; }
+        .routine-item-row select { flex: 1; min-width: 0; }
+        .routine-item-row input[type="number"] { width: 58px; }
+        html[data-theme="senior"] #routineCard { display: none !important; }
+    </style>
 <style id="cal-header-fix-css">
         /* 見出しがボタンに押し潰されて1文字ずつ縦に折り返す不具合の修正
            （body の overflow-wrap:anywhere で flex の見出しの最小幅が1文字になるのが原因。
@@ -1335,6 +1345,16 @@
                     <button class="action-icon-btn" id="recCollapseBtn" onclick="toggleRecommendationCollapse()">▴ 閉じる</button>
                 </div>
                 <div id="recommendBody"></div>
+            </div>
+
+            <div class="card" id="routineCard">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="section-label" style="margin-bottom:0;">📋 ルーティン</span>
+                    <button class="action-icon-btn" onclick="openRoutineEditor()">＋ 新規作成</button>
+                </div>
+                <div id="routineSessionBar" style="display:none; margin-bottom:10px;"></div>
+                <div id="routineList"></div>
+                <button class="action-icon-btn" id="routineSaveTodayBtn" style="margin-top:8px; display:none;" onclick="openRoutineEditorFromToday()">📥 今日の記録をルーティンとして保存</button>
             </div>
 
             <div class="card">
@@ -1452,6 +1472,9 @@
                 </div>
                 <div style="height:6px; border-radius:999px; background:var(--card-hover); overflow:hidden;">
                     <div id="weeklyGoalBar" style="height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width 0.4s;"></div>
+                </div>
+                <div id="streakText" style="font-size:0.8rem; color:var(--text-sub); margin-top:6px;"></div>
+                <div style="display:none;">
                 </div>
             </div>
             <div class="stats-grid">
@@ -1771,6 +1794,21 @@
     </div>
 
     <!-- モーダル4: 成果サマリーカード -->
+    <div class="modal" id="routineModal" onclick="if(event.target === this) closeRoutineEditor()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="routineModalTitle">ルーティンを作成</h3>
+                <button class="close-btn" onclick="closeRoutineEditor()">×</button>
+            </div>
+            <span class="section-label">ルーティン名</span>
+            <input type="text" id="routineNameInput" class="search-input" placeholder="例: 押す日" style="margin-bottom:14px;">
+            <span class="section-label">種目と目標（セット数・回数・休憩秒）</span>
+            <div id="routineItems" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+            <button class="action-icon-btn" onclick="addRoutineItem()">＋ 種目を追加</button>
+            <button class="record-exec-btn" style="margin-top:16px; margin-bottom:0;" onclick="saveRoutine()">保存する</button>
+        </div>
+    </div>
+
     <div class="modal" id="summaryModal" onclick="if(event.target === this) closeSummaryModal()">
         <div class="modal-content" style="background: linear-gradient(135deg, #181b22, #212631); border: 2px solid var(--gold);">
             <div class="modal-header">
@@ -1889,6 +1927,222 @@
             try { localStorage.setItem('workout_unit_v1', u); } catch (e) {}
             applyUnit();
             showToast(u === 'lb' ? '単位を lb（ポンド）に切り替えました' : '単位を kg に切り替えました');
+        }
+
+
+        // ===== Gymwork Batch1: ルーティン / セッション / ストリーク =====
+        const ROUTINE_KEY = 'workout_routines_v1';
+        const SESSION_KEY = 'workout_sessions_v1';
+        const BUILTIN_ROUTINES = [
+            { id: 'tpl_5x5', name: '5×5 ビッグ3', builtin: true, items: [
+                { name: 'バーベル スクワット', sets: 5, reps: 5, rest: 180 },
+                { name: 'バーベル ベンチプレス', sets: 5, reps: 5, rest: 180 },
+                { name: 'ベントオーバー バーベルローイング', sets: 5, reps: 5, rest: 180 } ] },
+            { id: 'tpl_push', name: '押す日（胸・肩・三頭）', builtin: true, items: [
+                { name: 'バーベル ベンチプレス', sets: 4, reps: 8, rest: 120 },
+                { name: 'インクライン ダンベルプレス', sets: 3, reps: 10, rest: 90 },
+                { name: 'ダンベル ショルダープレス', sets: 3, reps: 10, rest: 90 },
+                { name: 'ダンベル サイドレイズ', sets: 3, reps: 15, rest: 60 },
+                { name: 'ケーブル プレスダウン', sets: 3, reps: 12, rest: 60 } ] },
+            { id: 'tpl_pull', name: '引く日（背中・二頭）', builtin: true, items: [
+                { name: 'デッドリフト', sets: 3, reps: 5, rest: 180 },
+                { name: 'ラットプルダウン', sets: 3, reps: 10, rest: 90 },
+                { name: 'シーテッド ロー', sets: 3, reps: 12, rest: 90 },
+                { name: 'バーベル カール', sets: 3, reps: 10, rest: 60 },
+                { name: 'ハンマーカール', sets: 3, reps: 12, rest: 60 } ] },
+            { id: 'tpl_leg', name: '脚の日', builtin: true, items: [
+                { name: 'バーベル スクワット', sets: 4, reps: 8, rest: 180 },
+                { name: 'レッグプレス(マシン)', sets: 3, reps: 10, rest: 120 },
+                { name: 'ルーマニアン デッドリフト (RDL)', sets: 3, reps: 10, rest: 120 },
+                { name: 'レッグエクステンション', sets: 3, reps: 12, rest: 60 },
+                { name: 'スタンディング カーフレイズ', sets: 4, reps: 15, rest: 60 } ] },
+            { id: 'tpl_full', name: '全身ビギナー', builtin: true, items: [
+                { name: 'バーベル スクワット', sets: 3, reps: 8, rest: 120 },
+                { name: 'バーベル ベンチプレス', sets: 3, reps: 8, rest: 120 },
+                { name: 'ラットプルダウン', sets: 3, reps: 10, rest: 90 },
+                { name: 'ダンベル サイドレイズ', sets: 2, reps: 12, rest: 60 },
+                { name: 'アブローラー', sets: 3, reps: 10, rest: 60 } ] }
+        ];
+        function loadRoutines() { try { return JSON.parse(localStorage.getItem(ROUTINE_KEY)) || []; } catch (e) { return []; } }
+        function saveRoutines(r) { try { localStorage.setItem(ROUTINE_KEY, JSON.stringify(r)); } catch (e) {} }
+        function allRoutines() { return [...loadRoutines(), ...BUILTIN_ROUTINES]; }
+        function routineCats(r) {
+            const cats = [];
+            r.items.forEach(it => { const o = defaultExercises.find(e => e.name === it.name); if (o && !cats.includes(o.category)) cats.push(o.category); });
+            return cats.join('・');
+        }
+        function renderRoutineList() {
+            const el = document.getElementById('routineList');
+            if (!el) return;
+            const rs = allRoutines();
+            el.innerHTML = rs.map(r => `
+                <div class="routine-row">
+                    <div style="flex:1; min-width:0;">
+                        <div class="rname">${r.name}${r.builtin ? ' <span style="font-size:0.68rem; color:var(--text-sub); border:1px solid var(--border); border-radius:6px; padding:1px 5px;">テンプレート</span>' : ''}</div>
+                        <div class="rmeta">${routineCats(r)} / ${r.items.length}種目</div>
+                    </div>
+                    <button class="action-icon-btn accent" onclick="startRoutine('${r.id}')">開始</button>
+                    ${r.builtin ? '' : `<button class="action-icon-btn" onclick="openRoutineEditor('${r.id}')">編集</button><button class="action-icon-btn danger" onclick="deleteRoutine('${r.id}')">削除</button>`}
+                </div>`).join('');
+            const todayBtn = document.getElementById('routineSaveTodayBtn');
+            if (todayBtn) todayBtn.style.display = (workoutLogs[currentDayStr] || []).length > 0 ? '' : 'none';
+        }
+        function deleteRoutine(id) {
+            saveRoutines(loadRoutines().filter(r => r.id !== id));
+            renderRoutineList();
+            showToast('ルーティンを削除しました');
+        }
+        // --- ルーティン実行 ---
+        let activeRoutine = null;
+        function startRoutine(id) {
+            const r = allRoutines().find(x => x.id === id);
+            if (!r || r.items.length === 0) return;
+            activeRoutine = { id: r.id, name: r.name, idx: 0, items: r.items };
+            applyRoutineItem();
+            showToast(`📋 ルーティン「${r.name}」を開始しました`);
+        }
+        function applyRoutineItem() {
+            if (!activeRoutine) return;
+            const it = activeRoutine.items[activeRoutine.idx];
+            const sel = document.getElementById('exerciseSelect');
+            const has = [...sel.options].some(o => o.value === it.name);
+            if (!has) { showToast(`種目「${it.name}」がマスターにありません。次へ進みます`); advanceRoutine(); return; }
+            sel.value = it.name;
+            if (typeof syncPickerDisplay === 'function') syncPickerDisplay();
+            onExerciseChange();
+            if (typeof setTimer === 'function' && it.rest) setTimer(it.rest);
+            renderRoutineSession();
+        }
+        function advanceRoutine() {
+            if (!activeRoutine) return;
+            activeRoutine.idx++;
+            if (activeRoutine.idx >= activeRoutine.items.length) {
+                const name = activeRoutine.name;
+                activeRoutine = null;
+                renderRoutineSession();
+                showToast(`🎉 ルーティン「${name}」を完了しました！`);
+                return;
+            }
+            applyRoutineItem();
+        }
+        function endRoutine() { activeRoutine = null; renderRoutineSession(); }
+        function renderRoutineSession() {
+            const bar = document.getElementById('routineSessionBar');
+            if (!bar) return;
+            if (!activeRoutine) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+            const it = activeRoutine.items[activeRoutine.idx];
+            const done = (workoutLogs[currentDayStr] || []).filter(s => s.exerciseName === it.name).length;
+            const achieved = done >= it.sets;
+            bar.style.display = '';
+            bar.innerHTML = `
+                <div class="routine-session">
+                    <div style="font-weight:800; margin-bottom:4px;">📋 ${activeRoutine.name} <span style="color:var(--text-sub); font-weight:600; font-size:0.8rem;">${activeRoutine.idx + 1} / ${activeRoutine.items.length} 種目</span></div>
+                    <div style="font-size:0.88rem;">目標: <b>${it.name}</b> ${it.sets}セット × ${it.reps}回（休憩${it.rest}秒）<br>実施: ${done} / ${it.sets} セット${achieved ? ' <b style="color:var(--accent);">目標達成！</b>' : ''}</div>
+                    <div style="display:flex; gap:6px; margin-top:8px;">
+                        <button class="action-icon-btn accent" onclick="advanceRoutine()">${activeRoutine.idx + 1 >= activeRoutine.items.length ? '完了する' : '次の種目へ ▶'}</button>
+                        <button class="action-icon-btn" onclick="endRoutine()">中断</button>
+                    </div>
+                </div>`;
+        }
+        // --- ルーティン編集 ---
+        let editingRoutineId = null;
+        function routineItemRow(it) {
+            const opts = defaultExercises.map(e => `<option value="${e.name}"${it && e.name === it.name ? ' selected' : ''}>${e.name}</option>`).join('');
+            return `<div class="routine-item-row">
+                <select class="select-box ri-name">${opts}</select>
+                <input type="number" class="search-input ri-sets" value="${it ? it.sets : 3}" min="1" max="20" title="セット数">
+                <span style="font-size:0.75rem; color:var(--text-sub);">×</span>
+                <input type="number" class="search-input ri-reps" value="${it ? it.reps : 10}" min="1" max="100" title="回数">
+                <input type="number" class="search-input ri-rest" value="${it ? it.rest : 90}" min="0" max="600" step="30" title="休憩秒">
+                <button class="action-icon-btn danger" onclick="this.parentElement.remove()">✕</button>
+            </div>`;
+        }
+        function addRoutineItem(it) {
+            document.getElementById('routineItems').insertAdjacentHTML('beforeend', routineItemRow(it || null));
+        }
+        function openRoutineEditor(id, prefillItems) {
+            editingRoutineId = id || null;
+            const itemsEl = document.getElementById('routineItems');
+            itemsEl.innerHTML = '';
+            if (id) {
+                const r = loadRoutines().find(x => x.id === id);
+                if (!r) return;
+                document.getElementById('routineModalTitle').innerText = 'ルーティンを編集';
+                document.getElementById('routineNameInput').value = r.name;
+                r.items.forEach(it => addRoutineItem(it));
+            } else {
+                document.getElementById('routineModalTitle').innerText = 'ルーティンを作成';
+                document.getElementById('routineNameInput').value = '';
+                if (prefillItems && prefillItems.length) prefillItems.forEach(it => addRoutineItem(it));
+                else { addRoutineItem(); addRoutineItem(); addRoutineItem(); }
+            }
+            document.getElementById('routineModal').classList.add('open');
+        }
+        function closeRoutineEditor() { document.getElementById('routineModal').classList.remove('open'); }
+        function saveRoutine() {
+            const name = document.getElementById('routineNameInput').value.trim();
+            if (!name) { showToast('ルーティン名を入力してください'); return; }
+            const items = [...document.querySelectorAll('#routineItems .routine-item-row')].map(row => ({
+                name: row.querySelector('.ri-name').value,
+                sets: Math.max(1, parseInt(row.querySelector('.ri-sets').value, 10) || 3),
+                reps: Math.max(1, parseInt(row.querySelector('.ri-reps').value, 10) || 10),
+                rest: Math.max(0, parseInt(row.querySelector('.ri-rest').value, 10) || 90)
+            })).filter(it => it.name);
+            if (items.length === 0) { showToast('種目を1つ以上入れてください'); return; }
+            const rs = loadRoutines();
+            if (editingRoutineId) {
+                const r = rs.find(x => x.id === editingRoutineId);
+                if (r) { r.name = name; r.items = items; }
+            } else {
+                rs.push({ id: 'r_' + Date.now(), name, items });
+            }
+            saveRoutines(rs);
+            closeRoutineEditor();
+            renderRoutineList();
+            showToast(`📋 ルーティン「${name}」を保存しました`);
+        }
+        function openRoutineEditorFromToday() {
+            const logs = workoutLogs[currentDayStr] || [];
+            const byEx = {};
+            logs.forEach(s => {
+                if (!byEx[s.exerciseName]) byEx[s.exerciseName] = { name: s.exerciseName, sets: 0, reps: s.reps, rest: currentTimerSec || 90 };
+                byEx[s.exerciseName].sets++;
+            });
+            openRoutineEditor(null, Object.values(byEx));
+        }
+        // --- セッション計測 ---
+        function loadSessions() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || {}; } catch (e) { return {}; } }
+        function touchSession(dateStr) {
+            const s = loadSessions();
+            const now = Date.now();
+            if (!s[dateStr]) s[dateStr] = { start: now, end: now };
+            else s[dateStr].end = now;
+            try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {}
+        }
+        function sessionMinutes(dateStr) {
+            const s = loadSessions()[dateStr];
+            if (!s) return 0;
+            return Math.max(1, Math.round((s.end - s.start) / 60000));
+        }
+        function sessionKcal(dateStr) { return Math.round(sessionMinutes(dateStr) * 5); }
+        // --- ストリーク（週単位・日曜始まり） ---
+        function calcWeekStreak() {
+            const days = new Set(Object.keys(workoutLogs).filter(d => (workoutLogs[d] || []).length > 0));
+            if (days.size === 0) return 0;
+            const sun = (d) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() - x.getDay()); return x; };
+            let cursor = sun(getRealTodayStr());
+            const fmtD = (x) => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+            const hasInWeek = (sunday) => { for (let i = 0; i < 7; i++) { const d = new Date(sunday); d.setDate(d.getDate() + i); if (days.has(fmtD(d))) return true; } return false; };
+            if (!hasInWeek(cursor)) cursor.setDate(cursor.getDate() - 7);
+            let streak = 0;
+            while (hasInWeek(cursor)) { streak++; cursor.setDate(cursor.getDate() - 7); }
+            return streak;
+        }
+        function renderStreak() {
+            const el = document.getElementById('streakText');
+            if (!el) return;
+            const st = calcWeekStreak();
+            el.innerText = st >= 2 ? `🔥 ${st}週連続でトレーニング中` : '';
         }
 
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'editorial'; }
@@ -2403,6 +2657,8 @@
             syncUnitOptions();
             swapPresetButtons();
             applyHowtoUnit();
+            renderRoutineList();
+            renderStreak();
             onExerciseChange();
             renderCalendar();
             renderMasterList();
@@ -3248,6 +3504,9 @@
             // 次のセット番号に対応する前回値（または直前セット値）を自動予測してセット
             applySetPrediction(exName, currentSetNum);
             renderTodaySets();
+            touchSession(currentDayStr);
+            renderRoutineSession();
+            renderRoutineList();
 
             if (!skipTimer) {
                 startTimerCountdown(currentTimerSec);
@@ -3772,6 +4031,7 @@
             }
             document.getElementById('statDays').innerText = activeDays + '日';
             document.getElementById('statVolume').innerText = dispVol(totalVol).toLocaleString() + ' ' + wUnitPref();
+            renderStreak();
 
             renderSelectedDateLog(currentDayStr);
         }
@@ -4110,6 +4370,7 @@
                 <p>🏋️ <b>鍛えた部位</b>: ${Array.from(categories).join(', ') || '全身'}</p>
                 <p>📊 <b>合計セット数</b>: ${totalSets} セット</p>
                 <p>🔥 <b>総負荷量</b>: <b>${dispVol(totalVol).toLocaleString()} ${wUnitPref()}</b></p>
+                ${sessionMinutes(currentDayStr) > 0 ? `<p>⏱️ <b>所要時間</b>: 約${sessionMinutes(currentDayStr)}分 / 🔥 <b>消費カロリー</b>: 約${sessionKcal(currentDayStr)}kcal（目安）</p>` : ''}
                 <p style="color:var(--gold); margin:6px 0;">✨ <b>パワー換算</b>: ${equiv}</p>
                 <p>🏆 <b>本日のPR更新</b>: ${prCount} 件</p>
             `;
