@@ -1249,7 +1249,7 @@
         .rpe-chip.active { background: var(--accent); color: var(--on-accent, #fff); border-color: var(--accent); }
         .rec-bar-track { height: 8px; background: var(--surface-muted, #e5e1d8); border-radius: 999px; overflow: hidden; flex: 1; }
         .rec-bar-fill { height: 100%; border-radius: 999px; background: var(--accent); }
-        html[data-theme="senior"] #onboardBanner, html[data-theme="senior"] #rpeRow, html[data-theme="senior"] #suggestRow, html[data-theme="senior"] #plateCalcBtn, html[data-theme="senior"] #recoveryCard, html[data-theme="senior"] #catVolCard { display: none !important; }
+        html[data-theme="senior"] #exTargetLine, html[data-theme="senior"] #onboardBanner, html[data-theme="senior"] #rpeRow, html[data-theme="senior"] #suggestRow, html[data-theme="senior"] #plateCalcBtn, html[data-theme="senior"] #recoveryCard, html[data-theme="senior"] #catVolCard { display: none !important; }
     </style>
 <style id="gw1-css">
         .routine-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); margin-bottom: 8px; }
@@ -1368,12 +1368,17 @@
             <div class="card" id="routineCard">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span class="section-label" style="margin-bottom:0;">📋 ルーティン</span>
-                    <button class="action-icon-btn" onclick="openRoutineEditor()">＋ 新規作成</button>
+                    <div style="display:flex; gap:6px;">
+                        <button class="action-icon-btn" onclick="openRoutineEditor()">＋ 新規作成</button>
+                        <button class="action-icon-btn" id="routineCollapseBtn" onclick="toggleCardCollapse('routine')">▴ 閉じる</button>
+                    </div>
                 </div>
                 <div id="routineSessionBar" style="display:none; margin-bottom:10px;"></div>
+                <div id="routineBody">
                 <div id="routineList"></div>
                 <button class="action-icon-btn" id="routineSaveTodayBtn" style="margin-top:8px; display:none;" onclick="openRoutineEditorFromToday()">📥 今日の記録をルーティンとして保存</button>
                 <button class="action-icon-btn accent" style="margin-top:8px;" onclick="openAiMenu()">🤖 今日のメニューを自動生成</button>
+                </div>
             </div>
 
             <div class="card">
@@ -1388,6 +1393,7 @@
                     <!-- 動的生成 -->
                 </select>
                 <button type="button" class="select-box picker-display" id="exercisePickerBtn" onclick="openExercisePicker()"><span id="exercisePickerLabel">種目を選択</span></button>
+                <div id="exTargetLine" style="font-size:0.8rem; color:var(--text-sub); margin-top:6px;"></div>
 
                 <!-- 前回記録と自己ベストの自動表示 -->
                 <div class="prev-info-bar" id="prevInfoBar">
@@ -1492,15 +1498,6 @@
 
         <!-- TAB 2: カレンダー -->
         <div id="tab-calendar" class="tab-content">
-            <div class="card" id="recoveryCard" style="margin-bottom:12px;">
-                <span class="section-label">🛌 部位別の回復度</span>
-                <div id="recoveryBody"></div>
-                <div style="font-size:0.7rem; color:var(--text-sub); margin-top:6px;">最後に鍛えてからの経過時間とセット数からの目安です。</div>
-            </div>
-            <div class="card" id="catVolCard" style="margin-bottom:12px;">
-                <span class="section-label">📊 部位別ボリューム（今週）</span>
-                <div id="catVolBody"></div>
-            </div>
             <div class="card" id="weeklyGoalCard" style="margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span class="section-label" style="margin-bottom:0;">📅 今週の目標</span>
@@ -1558,6 +1555,25 @@
                 </div>
                 <div id="selectedDateLogs">
                     <!-- 動的生成 -->
+                </div>
+            </div>
+            <div class="card" id="recoveryCard" style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="section-label" style="margin-bottom:0;">🛌 部位別の回復度</span>
+                    <button class="action-icon-btn" id="recoveryCollapseBtn" onclick="toggleCardCollapse('recovery')">▴ 閉じる</button>
+                </div>
+                <div id="recoveryWrap">
+                    <div id="recoveryBody"></div>
+                    <div style="font-size:0.7rem; color:var(--text-sub); margin-top:6px;">最後に鍛えてからの経過時間とセット数からの目安です。</div>
+                </div>
+            </div>
+            <div class="card" id="catVolCard" style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="section-label" style="margin-bottom:0;">📊 部位別ボリューム（今週）</span>
+                    <button class="action-icon-btn" id="catVolCollapseBtn" onclick="toggleCardCollapse('catVol')">▴ 閉じる</button>
+                </div>
+                <div id="catVolWrap">
+                    <div id="catVolBody"></div>
                 </div>
             </div>
         </div>
@@ -2516,8 +2532,9 @@
             if (body) {
                 const ex = defaultExercises.find(e => e.name === exName);
                 const tip = EX_GUIDE[exName];
-                body.innerHTML = `<div style="margin-bottom:4px;">対象: <b>${ex ? ex.category : ''}</b>${ex ? ' · ' + ex.type : ''}</div>` +
-                    (tip ? `<div>${tip}</div>` : '<div style="color:var(--text-sub);">この種目のガイドは準備中です。</div>');
+                body.innerHTML = (ex ? muscleMapSvg(ex.category) : '') +
+                    `<div style="margin-bottom:4px;">効く部位: <b>${EX_MUSCLE[exName] || (ex ? ex.category : '')}</b>${ex ? ' ／ 器具: ' + ex.type : ''}</div>` +
+                    (tip ? `<div><b>やり方のコツ:</b> ${tip}</div>` : '<div style="color:var(--text-sub);">この種目のガイドは準備中です。</div>');
             }
             const ta = document.getElementById('exMemoInput');
             if (ta) ta.value = loadExMemos()[exName] || '';
@@ -2588,6 +2605,106 @@
         }
         function dismissOnboard() { try { localStorage.setItem('workout_onboarded_v1', '1'); } catch (e) {} checkOnboard(); }
         function openOnboardSettings() { dismissOnboard(); openSettingsModal(); }
+
+
+        // ===== Gymwork Batch4: 折りたたみ / 対象筋肉マップ =====
+        const COLLAPSE_KEY = 'workout_card_collapse_v1';
+        function loadCollapse() { try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; } catch (e) { return {}; } }
+        function toggleCardCollapse(key) {
+            const m = loadCollapse();
+            m[key] = !m[key];
+            try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(m)); } catch (e) {}
+            applyCardCollapse();
+        }
+        function applyCardCollapse() {
+            const m = loadCollapse();
+            const map = { routine: ['routineBody', 'routineCollapseBtn'], recovery: ['recoveryWrap', 'recoveryCollapseBtn'], catVol: ['catVolWrap', 'catVolCollapseBtn'] };
+            Object.keys(map).forEach(k => {
+                const body = document.getElementById(map[k][0]);
+                const btn = document.getElementById(map[k][1]);
+                if (!body || !btn) return;
+                const closed = !!m[k];
+                body.style.display = closed ? 'none' : '';
+                btn.innerText = closed ? '▾ 開く' : '▴ 閉じる';
+                btn.setAttribute('aria-expanded', closed ? 'false' : 'true');
+            });
+        }
+        const EX_MUSCLE = {
+            'バーベル ベンチプレス': '大胸筋', 'インクライン ベンチプレス': '大胸筋（上部）', 'デクライン ベンチプレス': '大胸筋（下部）',
+            'ダンベルプレス': '大胸筋', 'インクライン ダンベルプレス': '大胸筋（上部）', 'スミスマシン ベンチプレス': '大胸筋',
+            'スミスマシン インクラインプレス': '大胸筋（上部）', 'チェストプレス(マシン)': '大胸筋', 'プレートロード式 チェストプレス': '大胸筋',
+            'ダンベル フライ': '大胸筋', 'ペックフライ': '大胸筋（内側）', 'ケーブル クロスオーバー': '大胸筋（内側・下部）',
+            'ディップス': '大胸筋（下部）・上腕三頭筋', 'プッシュアップ': '大胸筋・上腕三頭筋', 'スタンディング マルチ フライト': '大胸筋',
+            'ラットプルダウン': '広背筋', 'プレートロード式ラットプルダウン': '広背筋', 'リバースグリップ ラットプルダウン': '広背筋・上腕二頭筋',
+            'チンニング(懸垂)': '広背筋', 'アシスト チンニング': '広背筋', 'シーテッド ロー': '広背筋・僧帽筋',
+            'ケーブル シーテッドローイング': '広背筋・僧帽筋', 'ベントオーバー バーベルローイング': '広背筋・僧帽筋', 'Tバー ローイング': '僧帽筋・広背筋',
+            'ワンハンド ダンベル ローイング': '広背筋', 'デッドリフト': '脊柱起立筋・臀部・ハムストリングス', 'ルーマニアン デッドリフト (RDL)': 'ハムストリングス・臀部',
+            'ストレートアーム プルダウン': '広背筋', 'バックエクステンション': '脊柱起立筋', 'ダンベル シュラッグ': '僧帽筋（上部）',
+            'ケーブル フェイスプル': '三角筋（後部）・僧帽筋',
+            'ダンベル ショルダープレス': '三角筋（前部・中部）', 'スミスマシン ショルダープレス': '三角筋（前部・中部）', 'ショルダープレス(マシン)': '三角筋（前部・中部）',
+            'プレートロード ショルダープレス': '三角筋（前部・中部）', 'アーノルドプレス': '三角筋（全体）', 'ダンベル サイドレイズ': '三角筋（中部）',
+            'ケーブル サイドレイズ': '三角筋（中部）', 'ダンベル フロントレイズ': '三角筋（前部）', 'ダンベル リア レイズ': '三角筋（後部）',
+            'リアデルト (マシン)': '三角筋（後部）', 'アップライトロー': '三角筋（中部）・僧帽筋',
+            'バイセップスカール': '上腕二頭筋', 'バーベル カール': '上腕二頭筋', 'EZバー カール': '上腕二頭筋',
+            'インクライン ダンベルカール': '上腕二頭筋', 'ハンマーカール': '上腕二頭筋・前腕', 'プリーチャーカール': '上腕二頭筋',
+            'ケーブル カール': '上腕二頭筋', 'コンセントレーション カール': '上腕二頭筋',
+            'ケーブル プレスダウン': '上腕三頭筋', 'スカルクラッシャー': '上腕三頭筋', 'オーバーヘッド トライセプスエクステンション': '上腕三頭筋（長頭）',
+            'ダンベル フレンチプレス': '上腕三頭筋（長頭）', 'ナローグリップ ベンチプレス': '上腕三頭筋・大胸筋',
+            'バーベル スクワット': '大腿四頭筋・臀部', 'スミスマシン スクワット': '大腿四頭筋・臀部', 'ワイド スクワット': '大腿四頭筋・内転筋・臀部',
+            'ハックスクワット': '大腿四頭筋', 'ゴブレット スクワット': '大腿四頭筋・臀部', 'レッグプレス(マシン)': '大腿四頭筋・臀部',
+            'レッグエクステンション': '大腿四頭筋', 'シーテッド レッグカール': 'ハムストリングス', 'ライイング レッグカール': 'ハムストリングス',
+            'ダンベル ランジ': '大腿四頭筋・臀部', 'ブルガリアン スクワット': '大腿四頭筋・臀部', 'スタンディング カーフレイズ': 'ふくらはぎ',
+            'バーベル ヒップスラスト': '大臀筋', 'ヒップアブダクション (アウターサイ)': '中臀筋', 'ヒアダクション (インナーサイ)': '内転筋',
+            'グルートドライブ (マシン)': '大臀筋', 'ケーブル キックバック': '大臀筋',
+            'アブドミナル': '腹直筋', 'アブローラー': '腹直筋・体幹', 'ハンギング レッグレイズ': '腹直筋（下部）',
+            'ケーブル クランチ': '腹直筋', 'トーソローテーション': '腹斜筋', 'プランク': '体幹（全体）',
+            '傾斜ウォーキング (インクライン)': '全身・心肺機能', 'トレッドミル (ランニング・ジョギング)': '全身・心肺機能',
+            'エアロバイク (アップライト)': '全身・心肺機能', 'スピンバイク': '全身・心肺機能',
+            'クロストレーナー (エリプティカル)': '全身・心肺機能', 'ステアマスター (階段昇降)': '全身・心肺機能・臀部',
+            'ローイングエルゴメーター': '全身・広背筋・脚'
+        };
+        function muscleMapSvg(cat) {
+            const base = 'var(--surface-muted, #e8e2d4)';
+            const hi = 'var(--accent)';
+            const st = 'var(--border)';
+            const F = (on) => on ? hi : base;
+            const front = { '胸': cat === '胸', '肩': cat === '肩', '腕': cat === '腕', '腹筋': cat === '腹筋', '脚': cat === '脚' };
+            const back = { '背中': cat === '背中', '肩': cat === '肩', '腕': cat === '腕', 'お尻': cat === 'お尻', '脚': cat === '脚' };
+            const all = cat === '有酸素';
+            const fsvg = `<svg width="62" height="124" viewBox="0 0 60 124" role="img" aria-label="前面">
+                <circle cx="30" cy="9" r="7" fill="${base}" stroke="${st}"/>
+                <path d="M20 19 L40 19 L42 54 L18 54 Z" fill="${base}" stroke="${st}"/>
+                <path d="M21 23 L39 23 L40 38 L20 38 Z" fill="${F(front['胸'] || all)}" stroke="${st}"/>
+                <rect x="24" y="40" width="12" height="12" rx="2" fill="${F(front['腹筋'] || all)}" stroke="${st}"/>
+                <circle cx="15" cy="24" r="5" fill="${F(front['肩'] || all)}" stroke="${st}"/><circle cx="45" cy="24" r="5" fill="${F(front['肩'] || all)}" stroke="${st}"/>
+                <rect x="10" y="30" width="6" height="17" rx="3" fill="${F(front['腕'] || all)}" stroke="${st}"/><rect x="44" y="30" width="6" height="17" rx="3" fill="${F(front['腕'] || all)}" stroke="${st}"/>
+                <rect x="19" y="56" width="9" height="25" rx="4" fill="${F(front['脚'] || all)}" stroke="${st}"/><rect x="32" y="56" width="9" height="25" rx="4" fill="${F(front['脚'] || all)}" stroke="${st}"/>
+                <rect x="20" y="84" width="7" height="20" rx="3" fill="${base}" stroke="${st}"/><rect x="33" y="84" width="7" height="20" rx="3" fill="${base}" stroke="${st}"/>
+            </svg>`;
+            const bsvg = `<svg width="62" height="124" viewBox="0 0 60 124" role="img" aria-label="背面">
+                <circle cx="30" cy="9" r="7" fill="${base}" stroke="${st}"/>
+                <path d="M20 19 L40 19 L42 54 L18 54 Z" fill="${base}" stroke="${st}"/>
+                <path d="M21 25 L39 25 L38 52 L22 52 Z" fill="${F(back['背中'] || all)}" stroke="${st}"/>
+                <path d="M24 18 L36 18 L39 25 L21 25 Z" fill="${F(back['背中'] || all)}" stroke="${st}"/>
+                <circle cx="15" cy="24" r="5" fill="${F(back['肩'] || all)}" stroke="${st}"/><circle cx="45" cy="24" r="5" fill="${F(back['肩'] || all)}" stroke="${st}"/>
+                <rect x="10" y="30" width="6" height="17" rx="3" fill="${F(back['腕'] || all)}" stroke="${st}"/><rect x="44" y="30" width="6" height="17" rx="3" fill="${F(back['腕'] || all)}" stroke="${st}"/>
+                <ellipse cx="24" cy="58" rx="6" ry="5" fill="${F(back['お尻'] || all)}" stroke="${st}"/><ellipse cx="36" cy="58" rx="6" ry="5" fill="${F(back['お尻'] || all)}" stroke="${st}"/>
+                <rect x="19" y="65" width="9" height="18" rx="4" fill="${F(back['脚'] || all)}" stroke="${st}"/><rect x="32" y="65" width="9" height="18" rx="4" fill="${F(back['脚'] || all)}" stroke="${st}"/>
+                <rect x="20" y="86" width="7" height="18" rx="3" fill="${F(back['脚'] || all)}" stroke="${st}"/><rect x="33" y="86" width="7" height="18" rx="3" fill="${F(back['脚'] || all)}" stroke="${st}"/>
+            </svg>`;
+            return `<div style="display:flex; gap:10px; justify-content:center; margin:6px 0 2px;">
+                <div style="text-align:center;">${fsvg}<div style="font-size:0.68rem; color:var(--text-sub);">前面</div></div>
+                <div style="text-align:center;">${bsvg}<div style="font-size:0.68rem; color:var(--text-sub);">背面</div></div>
+            </div>`;
+        }
+        function renderExTarget() {
+            const el = document.getElementById('exTargetLine');
+            if (!el) return;
+            const sel = document.getElementById('exerciseSelect');
+            const ex = sel ? defaultExercises.find(e => e.name === sel.value) : null;
+            if (!ex) { el.innerText = ''; return; }
+            el.innerText = `🎯 効く部位: ${EX_MUSCLE[ex.name] || ex.category} ／ 器具: ${ex.type}`;
+        }
 
         function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'editorial'; }
         function getCatColor(cat) {
@@ -3105,6 +3222,7 @@
             renderStreak();
             renderRpeChips();
             checkOnboard();
+            applyCardCollapse();
             onExerciseChange();
             renderCalendar();
             renderMasterList();
@@ -3868,6 +3986,7 @@
             applySetPrediction(exName, currentSetNum);
             renderTodaySets();
             renderWeightSuggestion();
+            renderExTarget();
         }
 
         function updateDisplayValues() {
